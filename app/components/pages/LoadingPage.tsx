@@ -1,7 +1,8 @@
 import React from 'react';
+import { DotLottieReact } from '@lottiefiles/dotlottie-react';
 
 const LoadingPage = () => {
-  return <div>This is LoadingPage</div>;
+  return <DotLottieReact src="LoadingAnimation" loop autoplay />;
 };
 
 export default LoadingPage;

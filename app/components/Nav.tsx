@@ -48,16 +48,10 @@ const Nav: React.FC<NavProps> = ({ onNavigate, isWhiteText }) => {
           <div className="flex gap-3 md:gap-5">
             {/* Action buttons for authenticated users */}
             <button
-              onClick={() => onNavigate('create-category')}
+              onClick={() => onNavigate('CreatorPage')}
               className={isWhiteText ? 'white_round_btn' : 'black_round_btn'}
             >
-              Create Trip
-            </button>
-            <button
-              onClick={() => onNavigate('create-quiz')}
-              className={isWhiteText ? 'white_round_btn' : 'black_round_btn'}
-            >
-              Create GoTo
+              Create
             </button>
             {/* Sign out button */}
             <button
@@ -122,22 +116,12 @@ const Nav: React.FC<NavProps> = ({ onNavigate, isWhiteText }) => {
                   My Profile
                 </button>
                 <button
-                  onClick={() => {
-                    setToggleDropdown(false);
-                    onNavigate('create-prompt');
-                  }}
-                  className="dropdown_link"
+                  onClick={() => onNavigate('CreatorPage')}
+                  className={
+                    isWhiteText ? 'white_round_btn' : 'black_round_btn'
+                  }
                 >
-                  Create Trip
-                </button>
-                <button
-                  onClick={() => {
-                    setToggleDropdown(false);
-                    onNavigate('create-category');
-                  }}
-                  className="dropdown_link"
-                >
-                  Create GoTo
+                  Create
                 </button>
                 <button
                   type="button"

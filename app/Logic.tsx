@@ -67,6 +67,8 @@ const Logic: React.FC = () => {
     switch (currentPage) {
       case 'landingpage':
         return <LandingPage onNavigate={handleNavigate} />;
+      case 'loading':
+        return <LoadingPage />; // Show a loading state when session status is loading
       // Add other cases for different pages if needed
       case 'GoToPage':
         return <GoToPage onNavigate={handleNavigate} />;

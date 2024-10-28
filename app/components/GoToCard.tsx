@@ -1,4 +1,3 @@
-// components/GoToCard.tsx
 import React from 'react';
 import { FaStar } from 'react-icons/fa';
 
@@ -23,12 +22,10 @@ const GoToCard: React.FC<GoToCardProps> = ({
   onNavigate,
   navigateTo,
 }) => {
-  // Handle button click to navigate to the GoToPage
   const handleClick = () => {
     onNavigate(navigateTo);
   };
 
-  // Function to render the star ratings based on the number of stars passed
   const renderStars = () => {
     const fullStars = Math.floor(stars);
     const totalStars = 5; // Assuming 5 as the maximum number of stars
@@ -57,21 +54,22 @@ const GoToCard: React.FC<GoToCardProps> = ({
   };
 
   return (
-    <div className="max-w-xs h-80 bg-white border shadow-sm rounded-xl flex flex-col justify-between">
+    <div className="w-80 h-96 bg-white border shadow-sm rounded-xl flex flex-col justify-between">
       {/* Image */}
       <img
-        className="w-full h-40 object-cover rounded-t-xl"
+        className="w-full h-55 object-cover rounded-t-xl"
         src={imageUrl}
         alt={title}
       />
 
       {/* Text Content */}
-      <div className="text-left p-4 md:p-5 flex-grow" onClick={handleClick}>
+      <div
+        className="text-left p-4 flex-grow cursor-pointer"
+        onClick={handleClick}
+      >
         <div className="flex flex-row items-center">
-          <h3 className="sm:text-md text-base font-bold text-text-color2 mr-2">
-            {title}
-          </h3>
-          <span className="bg-indigo-100 text-indigo-800 text-center text-xs font-medium me-2 px-2.5 py-0.5 rounded-full dark:bg-indigo-900 dark:text-indigo-300">
+          <h3 className="text-base font-bold text-text-color2 mr-2">{title}</h3>
+          <span className="bg-indigo-100 text-indigo-800 text-center text-xs font-medium px-2.5 py-0.5 rounded-full">
             {tag}
           </span>
         </div>
