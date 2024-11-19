@@ -13,6 +13,9 @@ import SigninForm from './components/pages/SignInForm';
 import HomePage from './components/pages/HomePage';
 import LoadingPage from './components/pages/LoadingPage';
 import CreateTripPage from './components/pages/CreateTripPage';
+import TripDayPage from './components/pages/TripDayPage';
+import CreateGoToPage from './components/pages/CreateGoToPage';
+import CreateLandingPage from './components/pages/CreateLandingPage';
 
 const Logic: React.FC = () => {
   const { data: session, status } = useSession(); // Session data and status from next-auth
@@ -38,7 +41,7 @@ const Logic: React.FC = () => {
   useEffect(() => {
     // If the user is authenticated (there is a session), navigate to CreatorLandingPage
     if (status === 'authenticated') {
-      handleNavigate('CreateTripPage'); // Use your existing onNavigate function to navigate
+      handleNavigate('CreateLandingPage'); // Use your existing onNavigate function to navigate
     }
   }, [session, status]);
 
@@ -77,6 +80,10 @@ const Logic: React.FC = () => {
         return <CreatorLandingPage />;
       case 'CreateTripPage':
         return <CreateTripPage onNavigate={handleNavigate} />;
+      case 'CreateGoToPage':
+        return <CreateGoToPage onNavigate={handleNavigate} />;
+      case 'CreateLandingPage':
+        return <CreateLandingPage onNavigate={handleNavigate} />;
       case 'AboutGoToPage':
         return <AboutGoToPage onNavigate={handleNavigate} />;
       case 'TripBrowsePage':

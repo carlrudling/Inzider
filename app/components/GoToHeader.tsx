@@ -1,26 +1,24 @@
 import React from 'react';
-import { FaCoffee } from 'react-icons/fa'; // You can replace this with any other icon
 
 interface GoToHeaderProps {
-  icon?: React.ReactNode; // Allows you to pass any icon
   title: string; // The main title of the card
   subtitle: string; // The subtitle below the title
-  pageNumber: string; // Page number on the right side
-  totalPages: string; // Page number on the right side
+  pageNumber?: string; // Page number on the right side
+  totalPages?: string; // Page number on the right side
+  day?: string;
 }
 
 const GoToHeader: React.FC<GoToHeaderProps> = ({
-  icon = <FaCoffee />,
   title,
   subtitle,
   pageNumber,
   totalPages,
+  day,
 }) => {
   return (
     <div className="flex justify-between items-start p-4 w-full">
       <div className="flex items-center">
         {/* Icon */}
-        <div className="mr-4 text-2xl text-text-color2">{icon}</div>
 
         {/* Title and Subtitle */}
         <div>
@@ -35,7 +33,13 @@ const GoToHeader: React.FC<GoToHeaderProps> = ({
 
       {/* Page Number */}
       <div className="self-end text-text-color1 font-sourceSansPro text-sm">
-        {pageNumber}/{totalPages}
+        {day ? (
+          <span>{day}</span> // Display day if available
+        ) : (
+          <span>
+            {pageNumber}/{totalPages}
+          </span> // Otherwise, display page number
+        )}
       </div>
     </div>
   );

@@ -388,5 +388,4 @@ body {
 
 .clip-half {
   clip-path: inset(0 0 0 50%);
-  /* Clips the right half of the star */
 }

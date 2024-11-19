@@ -1,4 +1,5 @@
 import React from 'react';
+import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import Carousel from '../Carousel';
 import GoToHeader from '../GoToHeader';
 import LocationBlock from '../LocationBlock';
@@ -15,26 +16,24 @@ interface Specific {
   value: string | number;
 }
 
-interface GoToPageProps {
+interface TripDayPageProps {
   title: string;
   subtitle: string;
   slides: Slide[];
   address: string;
   creatorWords: string;
   specifics: Specific[];
-  pageNumber: string;
-  totalPages: string;
+  day: string;
 }
 
-const GoToPage: React.FC<GoToPageProps> = ({
+const TripDayPage: React.FC<TripDayPageProps> = ({
   title,
   subtitle,
   slides,
   address,
   creatorWords,
   specifics,
-  pageNumber,
-  totalPages,
+  day,
 }) => {
   return (
     <section className="relative flex flex-col items-center justify-start text-white bg-cover bg-center">
@@ -45,12 +44,7 @@ const GoToPage: React.FC<GoToPageProps> = ({
             {/* Spot Content */}
             <div className="flex flex-col items-center w-full gap-4">
               {/* Header */}
-              <GoToHeader
-                title={title}
-                subtitle={subtitle}
-                pageNumber={pageNumber}
-                totalPages={totalPages}
-              />
+              <GoToHeader title={title} subtitle={subtitle} day={day} />
 
               {/* Carousel */}
               <div className="flex justify-center mt-2 w-full px-4">
@@ -79,4 +73,4 @@ const GoToPage: React.FC<GoToPageProps> = ({
   );
 };
 
-export default GoToPage;
+export default TripDayPage;

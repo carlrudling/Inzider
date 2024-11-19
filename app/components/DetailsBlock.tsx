@@ -19,7 +19,7 @@ const DetailsBlock: React.FC<DetailsBlockProps> = ({ title, details }) => {
       {details.map((detail, index) => (
         <p
           key={index}
-          className="font-sourceSansPro text-text-color2 ml-4 text-base"
+          className="font-sourceSansPro text-text-color2 ml-4 text-sm"
         >
           <span className="font-semibold text-text-color2">
             {detail.label}:{' '}
