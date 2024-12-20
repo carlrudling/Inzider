@@ -9,13 +9,14 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.705.0",
     "@types/tailwindcss": "^3.1.0",
     "bcryptjs": "^2.4.3",
     "lottie-react": "^2.4.0",
     "mongodb": "^6.9.0",
     "mongoose": "^8.7.1",
     "next": "^14.2.18",
-    "next-auth": "^4.24.8",
+    "next-auth": "^4.24.11",
     "react": "^18.3.1",
     "react-beautiful-dnd": "^13.1.1",
     "react-dnd": "^16.0.1",

@@ -1,53 +1,63 @@
-import { NextApiRequest, NextApiResponse } from 'next';
-import dbConnect from '@/app/utils/database';
-import Trip from '../../models/Trip';
+import { NextResponse } from 'next/server';
+import dbConnect from '@/utils/database';
+import Trip from '@/models/Trip';
 
-export default async function handler(
-  req: NextApiRequest,
-  res: NextApiResponse
-) {
-  await dbConnect();
+export async function GET(req: Request) {
+  try {
+    await dbConnect();
+    const { searchParams } = new URL(req.url);
 
-  switch (req.method) {
-    case 'POST': {
-      try {
-        const { title, price, creator, days } = req.body;
+    const creatorId = searchParams.get('creatorId');
+    const idsParam = searchParams.get('ids');
 
-        const newTrip = new Trip({
-          title,
-          price,
-          creator,
-          days, // Array of days with spots
-        });
+    let filter = {};
 
-        await newTrip.save();
-        return res.status(201).json(newTrip);
-      } catch (error) {
-        return res.status(400).json({ error: 'Error creating trip' });
-      }
+    if (idsParam) {
+      // Filter by an array of IDs
+      const idsArray = idsParam.split(',');
+      filter = { _id: { $in: idsArray } };
+    } else if (creatorId) {
+      filter = { creatorId };
     }
 
-    case 'PUT': {
-      const { id } = req.query;
-      const { days } = req.body;
+    const trips = await Trip.find(filter);
+    return NextResponse.json(trips, { status: 200 });
+  } catch (error: any) {
+    console.error(error);
+    return new NextResponse('Internal Server Error', { status: 500 });
+  }
+}
 
-      try {
-        const trip = await Trip.findById(id);
+export async function POST(req: Request) {
+  try {
+    await dbConnect();
 
-        if (!trip) {
-          return res.status(404).json({ error: 'Trip not found' });
-        }
+    const data = await req.json();
+    console.log('Received Data:', data); // Add this to inspect the request body
 
-        trip.days = days; // Update the days with new spots
-        await trip.save();
-
-        return res.status(200).json(trip);
-      } catch (error) {
-        return res.status(400).json({ error: 'Error updating trip' });
-      }
+    // Validate the required fields
+    const requiredFields = [
+      'title',
+      'price',
+      'currency',
+      'creatorId',
+      'startDate',
+      'endDate',
+    ];
+    const missingFields = requiredFields.filter((field) => !data[field]);
+    if (missingFields.length) {
+      return NextResponse.json(
+        { error: `Missing required fields: ${missingFields.join(', ')}` },
+        { status: 400 }
+      );
     }
 
-    default:
-      return res.status(405).json({ error: 'Method not allowed' });
+    const newTrip = new Trip(data);
+    await newTrip.save();
+
+    return NextResponse.json(newTrip, { status: 201 });
+  } catch (error: any) {
+    console.error('Error creating trip:', error);
+    return new NextResponse('Internal Server Error', { status: 500 });
   }
 }

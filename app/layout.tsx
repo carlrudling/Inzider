@@ -1,6 +1,9 @@
+// app/layout.tsx
 import type { Metadata } from 'next';
-import './styles/globals.css';
-import Provider from './provider/SessionProvider';
+import '../styles/globals.css';
+import Provider from '../provider/SessionProvider';
+import ClientSessionHandler from '@/provider/ClientSideHandler';
+import { CreatorProvider } from '@/provider/CreatorProvider';
 
 export const metadata: Metadata = {
   title: 'Inzider',
@@ -9,13 +12,17 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
     <html lang="en">
       <Provider>
-        <body>{children}</body>
+        <CreatorProvider>
+          <body>
+            <ClientSessionHandler>{children}</ClientSessionHandler>
+          </body>
+        </CreatorProvider>
       </Provider>
     </html>
   );

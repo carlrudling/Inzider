@@ -1,12 +1,7 @@
-import React from 'react'
-import Logic from './Logic';
-
-
+import React from 'react';
 
 const Home = () => {
-  return (
-    <Logic />
-  )
-}
+  return null;
+};
 
-export default Home
+export default Home;

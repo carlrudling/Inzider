@@ -4,8 +4,8 @@ import FacebookProvider from 'next-auth/providers/facebook'; // Import Facebook 
 import CredentialsProvider from 'next-auth/providers/credentials';
 import bcrypt from 'bcryptjs';
 import { ObjectId } from 'mongoose'; // Import ObjectId type if needed
-import Creator, { ICreator } from '../../../models/creator';
-import dbConnect from '../../../utils/database';
+import Creator, { ICreator } from '@/models/Creator';
+import dbConnect from '@/utils/database';
 
 // Extend the NextAuth Session interface to include the custom id property
 declare module 'next-auth' {
