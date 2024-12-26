@@ -272,20 +272,16 @@ const HomePage = () => {
             ref={scrollContainerRef1}
           >
             <div className="flex space-x-4 whitespace-nowrap">
-              {goTos.map((gotoItem, index) => (
+              {goTos.map((goto, index) => (
                 <GoToCard
                   key={index}
-                  title={gotoItem.title}
-                  description={gotoItem.description}
-                  imageUrl={
-                    gotoItem.slides && gotoItem.slides.length > 0
-                      ? gotoItem.slides[0].src
-                      : 'https://via.placeholder.com/150'
-                  }
-                  country={gotoItem.location || 'Unknown'}
-                  tag={gotoItem.status === 'launch' ? 'Launched' : 'Draft'}
-                  stars={gotoItem.avgRating || 0}
-                  navigateTo={`/dashboard/edit-goto/${gotoItem._id}`}
+                  title={goto.title}
+                  description={goto.description}
+                  imageUrl={goto.slides[0]?.src || '/default-image.jpg'}
+                  country={goto.location || 'Unknown'}
+                  tag={goto.status === 'launch' ? 'Launched' : 'Draft'}
+                  stars={goto.avgRating || 0}
+                  navigateTo={`/dashboard/edit-goto/${goto._id}`}
                 />
               ))}
             </div>
@@ -319,20 +315,20 @@ const HomePage = () => {
             ref={scrollContainerRef2}
           >
             <div className="flex space-x-4 whitespace-nowrap">
-              {trips.map((tripItem, index) => (
+              {trips.map((trip, index) => (
                 <GoToCard
                   key={index}
-                  title={tripItem.title}
-                  description={tripItem.description}
+                  title={trip.title}
+                  description={trip.description}
                   imageUrl={
-                    tripItem.slides && tripItem.slides.length > 0
-                      ? tripItem.slides[0].src
+                    trip.slides && trip.slides.length > 0
+                      ? trip.slides[0].src
                       : 'https://via.placeholder.com/150'
                   }
-                  country={tripItem.location || 'Unknown'}
-                  tag={tripItem.status === 'launch' ? 'Launched' : 'Draft'}
-                  stars={tripItem.avgRating || 0}
-                  navigateTo={`/trip/${tripItem._id}`} // Adjust the route as needed
+                  country={trip.location || 'Unknown'}
+                  tag={trip.status === 'launch' ? 'Launched' : 'Draft'}
+                  stars={trip.avgRating || 0}
+                  navigateTo={`/trip/${trip._id}`}
                 />
               ))}
             </div>

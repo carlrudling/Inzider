@@ -10,6 +10,7 @@ import { RxCrossCircled } from 'react-icons/rx';
 import GoToPage from './GoToPage';
 import SlideItem from './SlideItem';
 import { useCreatorData } from '@/provider/CreatorProvider';
+import { useRouter } from 'next/navigation';
 
 interface Spot {
   title: string;
@@ -21,6 +22,7 @@ interface Spot {
 
 interface GoToFormProps {
   initialData?: {
+    id?: string;
     title?: string;
     price?: string;
     currency?: string;
@@ -40,6 +42,7 @@ const GoToForm: React.FC<GoToFormProps> = ({
   onSave,
 }) => {
   const { creatorData } = useCreatorData(); // Ensure this returns creatorData with at least creatorData._id
+  const router = useRouter();
 
   const [showAboutPageFields, setShowAboutPageFields] = useState(false);
   const [showTripSpotsFields, setShowTripSpotsFields] = useState(false);
@@ -511,68 +514,50 @@ const GoToForm: React.FC<GoToFormProps> = ({
     handleSave('launch');
   };
   const handleDeleteGoTo = async () => {
-    if (!initialData || !creatorData?._id) {
-      alert('GoTo or Creator data is missing!');
+    if (!initialData?.id) {
+      console.error('No GoTo ID available');
+      setShowDeleteConfirmation(false);
       return;
     }
 
     try {
-      // Delete all slides from Cloudflare
-      const slideUrls = [
-        ...slides
-          .filter(
-            (slide): slide is { src: string; type: 'image' | 'video' } =>
-              'src' in slide && 'type' in slide
-          )
-          .map((slide) => new URL(slide.src).pathname.slice(1)), // Extract key from URL
-        ...spots.flatMap(
-          (spot) =>
-            spot.slides
-              .filter(
-                (slide): slide is { src: string; type: 'image' | 'video' } =>
-                  'src' in slide && 'type' in slide
-              )
-              .map((slide) => new URL(slide.src).pathname.slice(1)) // Extract key from URL
-        ),
-      ];
+      // Delete all media files first
+      const allSlides = [...slides, ...spots.flatMap((spot) => spot.slides)];
 
-      for (const key of slideUrls) {
-        await fetch(`/api/uploads/delete`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ key }),
-        });
+      for (const slide of allSlides) {
+        if ('src' in slide && slide.src) {
+          try {
+            // Extract the key from the URL path
+            const key = slide.src.split('/').pop();
+            if (!key) continue;
+
+            await fetch('/api/uploads/delete', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ key }),
+            });
+          } catch (error) {
+            console.error('Error deleting file:', error);
+          }
+        }
       }
 
-      // Ensure `id` exists in `initialData` for deletion
-      if (!('id' in initialData)) {
-        console.error('Missing GoTo ID for deletion');
-        alert('Failed to delete GoTo. Missing ID.');
-        return;
-      }
-
-      const gotoId = initialData?.id;
-      if (!gotoId) {
-        console.error('Missing GoTo ID for deletion');
-        alert('Failed to delete GoTo. Missing ID.');
-        return;
-      }
-
-      // Delete GoTo data from the backend
+      // Then delete the GoTo itself
       const response = await fetch(`/api/gotos/${initialData.id}`, {
         method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
       });
 
       if (!response.ok) {
-        throw new Error('Failed to delete the GoTo.');
+        const error = await response.text();
+        throw new Error(`Failed to delete GoTo: ${error}`);
       }
 
-      alert('GoTo deleted successfully.');
-      window.location.href = '/dashboard'; // Redirect to the dashboard or another page
+      router.push('/dashboard');
     } catch (error) {
       console.error('Error deleting GoTo:', error);
-      alert('Failed to delete the GoTo. Please try again.');
-    } finally {
       setShowDeleteConfirmation(false);
     }
   };

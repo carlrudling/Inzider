@@ -51,32 +51,36 @@ const GoToCard: React.FC<GoToCardProps> = ({
   return (
     <Link
       href={navigateTo}
-      className="w-80 h-96 bg-white border shadow-sm rounded-xl flex flex-col justify-between cursor-pointer"
+      className="block w-[300px] min-w-[300px] h-[420px] bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200 flex flex-col"
     >
       {/* Image */}
       <img
-        className="w-full h-55 object-cover rounded-t-xl"
+        className="w-full h-48 object-cover rounded-t-xl"
         src={imageUrl}
         alt={title}
       />
 
       {/* Text Content */}
-      <div className="text-left p-4 flex-grow">
-        <div className="flex flex-row items-center">
+      <div className="flex flex-col flex-1 p-4">
+        <div className="flex flex-row items-center mb-3">
           <h3 className="text-base font-bold text-text-color2 mr-2">{title}</h3>
           <span className="bg-indigo-100 text-indigo-800 text-center text-xs font-medium px-2.5 py-0.5 rounded-full">
             {tag}
           </span>
         </div>
-        <p className="mt-1 text-sm text-text-color1 line-clamp-3">
-          {description}
-        </p>
-      </div>
 
-      {/* Star Ratings and Country */}
-      <div className="flex justify-between items-center px-4 pb-4">
-        <p className="text-sm text-text-color1">{country}</p>
-        <div className="flex flex-row space-x-1">{renderStars()}</div>
+        {/* Description container */}
+        <div className="mb-4 flex-1">
+          <p className="text-sm text-text-color1 line-clamp-4 whitespace-normal">
+            {description}
+          </p>
+        </div>
+
+        {/* Star Ratings and Country */}
+        <div className="flex justify-between items-center">
+          <p className="text-sm text-text-color1">{country}</p>
+          <div className="flex flex-row space-x-1">{renderStars()}</div>
+        </div>
       </div>
     </Link>
   );
