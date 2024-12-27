@@ -22,6 +22,8 @@ export interface ICreator extends Document {
   myGotos: Schema.Types.ObjectId[];
   createdAt?: Date;
   updatedAt?: Date;
+  buttonColor?: string;
+  buttonTextColor?: string;
 }
 
 const CreatorSchema = new Schema<ICreator>(
@@ -44,8 +46,6 @@ const CreatorSchema = new Schema<ICreator>(
     xLink: { type: String }, // Twitter/X
     tiktok: { type: String },
     youtube: { type: String },
-    tripButtonColor: { type: String },
-    tripButtonText: { type: String },
     gotoButtonColor: { type: String },
     gotoButtonText: { type: String },
     backgroundImage: { type: String },
@@ -53,6 +53,8 @@ const CreatorSchema = new Schema<ICreator>(
     discountCode: { type: String },
     myTrips: [{ type: Schema.Types.ObjectId, ref: 'Trip' }],
     myGotos: [{ type: Schema.Types.ObjectId, ref: 'GoTo' }],
+    buttonColor: { type: String, default: '#726238' },
+    buttonTextColor: { type: String, default: '#FFFFFF' },
   },
   { timestamps: true }
 );

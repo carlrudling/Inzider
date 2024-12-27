@@ -6,7 +6,7 @@ import { useSession } from 'next-auth/react';
 import { Schema } from 'mongoose';
 
 interface CreatorData {
-  _id?: string; // Add this line
+  _id?: string;
   name: string;
   username: string;
   email: string;
@@ -14,11 +14,11 @@ interface CreatorData {
   profileImage?: string;
   description?: string;
   instagram?: string;
-  xLink?: string; // For Twitter/X
+  xLink?: string;
   tiktok?: string;
   youtube?: string;
-  tripButtonColor?: string;
-  tripButtonText?: string;
+  buttonColor?: string;
+  buttonTextColor?: string;
   gotoButtonColor?: string;
   gotoButtonText?: string;
   backgroundImage?: string;

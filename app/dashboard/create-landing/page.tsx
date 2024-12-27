@@ -4,45 +4,126 @@ import Nav from '../../../components/Nav';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
 import CreatorLandingPage from '../../creator/[username]/page';
+import { useCreatorData } from '@/provider/CreatorProvider';
+import { useRouter } from 'next/navigation';
 
 const CreateLandingPage = () => {
+  const { creatorData } = useCreatorData();
+  const router = useRouter();
+
   const [backgroundImage, setBackgroundImage] = useState<File | null>(null);
   const [profileImage, setProfileImage] = useState<File | null>(null);
   const [creatorName, setCreatorName] = useState('');
   const [description, setDescription] = useState('');
   const [instagramLink, setInstagramLink] = useState('');
-  const [twitterLink, setTwitterLink] = useState('');
-  const [buttonColor, setButtonColor] = useState('#726238'); // Default button color
-  const [buttonTextColor, setButtonTextColor] = useState('#FFFFFF'); // Default text color
-  const [textColor, setTextColor] = useState('#FFFFFF'); // Default text color
+  const [xLink, setXLink] = useState('');
+  const [tiktokLink, setTiktokLink] = useState('');
+  const [youtubeLink, setYoutubeLink] = useState('');
+  const [buttonColor, setButtonColor] = useState('#726238');
+  const [buttonTextColor, setButtonTextColor] = useState('#FFFFFF');
+  const [textColor, setTextColor] = useState('#FFFFFF');
+  const [existingBackgroundUrl, setExistingBackgroundUrl] =
+    useState<string>('');
+  const [existingProfileUrl, setExistingProfileUrl] = useState<string>('');
 
-  // Memoize the background image URL
+  // Fetch creator data
+  useEffect(() => {
+    if (creatorData) {
+      setCreatorName(creatorData.name || '');
+      setDescription(creatorData.description || '');
+      setInstagramLink(creatorData.instagram || '');
+      setXLink(creatorData.xLink || '');
+      setTiktokLink(creatorData.tiktok || '');
+      setYoutubeLink(creatorData.youtube || '');
+      setButtonColor(creatorData.buttonColor || '#726238');
+      setButtonTextColor(creatorData.buttonTextColor || '#FFFFFF');
+      setTextColor(creatorData.textColor || '#FFFFFF');
+      setExistingBackgroundUrl(creatorData.backgroundImage || '');
+      setExistingProfileUrl(creatorData.profileImage || '');
+    }
+  }, [creatorData]);
+
+  // Image URL handling
   const backgroundImageURL = useMemo(() => {
-    return backgroundImage ? URL.createObjectURL(backgroundImage) : undefined;
-  }, [backgroundImage]);
+    return backgroundImage
+      ? URL.createObjectURL(backgroundImage)
+      : existingBackgroundUrl;
+  }, [backgroundImage, existingBackgroundUrl]);
 
-  // Clean up the background image URL when the component unmounts or backgroundImage changes
-  useEffect(() => {
-    return () => {
-      if (backgroundImageURL) {
-        URL.revokeObjectURL(backgroundImageURL);
-      }
-    };
-  }, [backgroundImageURL]);
-
-  // Memoize the profile image URL
   const profileImageURL = useMemo(() => {
-    return profileImage ? URL.createObjectURL(profileImage) : undefined;
-  }, [profileImage]);
+    return profileImage
+      ? URL.createObjectURL(profileImage)
+      : existingProfileUrl;
+  }, [profileImage, existingProfileUrl]);
 
-  // Clean up the profile image URL when the component unmounts or profileImage changes
+  // Cleanup URLs
   useEffect(() => {
     return () => {
-      if (profileImageURL) {
-        URL.revokeObjectURL(profileImageURL);
-      }
+      if (backgroundImage) URL.revokeObjectURL(backgroundImageURL);
+      if (profileImage) URL.revokeObjectURL(profileImageURL);
     };
-  }, [profileImageURL]);
+  }, [backgroundImage, profileImage, backgroundImageURL, profileImageURL]);
+
+  const uploadFile = async (file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const res = await fetch('/api/uploads', {
+      method: 'POST',
+      body: formData,
+    });
+
+    if (!res.ok) throw new Error('Upload failed');
+    const { fileUrl } = await res.json();
+    return fileUrl;
+  };
+
+  const handleSaveChanges = async () => {
+    try {
+      if (!creatorData?._id) {
+        alert('No creator ID found');
+        return;
+      }
+
+      let backgroundImageUrl = existingBackgroundUrl;
+      let profileImageUrl = existingProfileUrl;
+
+      if (backgroundImage) {
+        backgroundImageUrl = await uploadFile(backgroundImage);
+      }
+      if (profileImage) {
+        profileImageUrl = await uploadFile(profileImage);
+      }
+
+      const response = await fetch(`/api/creators/${creatorData._id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: creatorName,
+          description,
+          instagramLink,
+          xLink,
+          tiktokLink,
+          youtubeLink,
+          buttonColor,
+          buttonTextColor,
+          textColor,
+          backgroundImage: backgroundImageUrl,
+          profileImage: profileImageUrl,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update creator');
+      }
+
+      alert('Changes saved successfully!');
+      router.refresh();
+    } catch (error) {
+      console.error('Error saving changes:', error);
+      alert('Failed to save changes');
+    }
+  };
 
   const handleBackgroundImageUpload = (
     event: React.ChangeEvent<HTMLInputElement>
@@ -58,11 +139,6 @@ const CreateLandingPage = () => {
     if (event.target.files && event.target.files[0]) {
       setProfileImage(event.target.files[0]);
     }
-  };
-
-  const handleSaveChanges = () => {
-    console.log('Changes saved!');
-    // Add your save logic here
   };
 
   return (
@@ -120,26 +196,48 @@ const CreateLandingPage = () => {
             </label>
 
             {/* Social Media Links */}
-            <label className="block">
-              <span className="text-gray-700">Instagram Link</span>
-              <input
-                type="text"
-                className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
-                placeholder="https://instagram.com/yourprofile"
-                value={instagramLink}
-                onChange={(e) => setInstagramLink(e.target.value)}
-              />
-            </label>
-            <label className="block">
-              <span className="text-gray-700">Twitter Link</span>
-              <input
-                type="text"
-                className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
-                placeholder="https://twitter.com/yourprofile"
-                value={twitterLink}
-                onChange={(e) => setTwitterLink(e.target.value)}
-              />
-            </label>
+            <div className="space-y-4">
+              <label className="block">
+                <span className="text-gray-700">Instagram</span>
+                <input
+                  type="text"
+                  className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
+                  placeholder="https://instagram.com/yourprofile"
+                  value={instagramLink}
+                  onChange={(e) => setInstagramLink(e.target.value)}
+                />
+              </label>
+              <label className="block">
+                <span className="text-gray-700">X (Twitter)</span>
+                <input
+                  type="text"
+                  className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
+                  placeholder="https://x.com/yourprofile"
+                  value={xLink}
+                  onChange={(e) => setXLink(e.target.value)}
+                />
+              </label>
+              <label className="block">
+                <span className="text-gray-700">TikTok</span>
+                <input
+                  type="text"
+                  className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
+                  placeholder="https://tiktok.com/@yourprofile"
+                  value={tiktokLink}
+                  onChange={(e) => setTiktokLink(e.target.value)}
+                />
+              </label>
+              <label className="block">
+                <span className="text-gray-700">YouTube</span>
+                <input
+                  type="text"
+                  className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
+                  placeholder="https://youtube.com/@yourchannel"
+                  value={youtubeLink}
+                  onChange={(e) => setYoutubeLink(e.target.value)}
+                />
+              </label>
+            </div>
 
             {/* Button Colors */}
             <label className="block">
@@ -182,7 +280,7 @@ const CreateLandingPage = () => {
               creatorName={creatorName}
               description={description}
               instagramLink={instagramLink}
-              twitterLink={twitterLink}
+              twitterLink={xLink}
               buttonColor={buttonColor}
               buttonTextColor={buttonTextColor}
               textColor={textColor}
