@@ -1,7 +1,7 @@
 'use client';
 import React, { useRef, useEffect, useState } from 'react';
 import Nav from '../../components/Nav';
-import GoToCard from '../../components/GoToCard';
+import GoToCard from '../../components/Card';
 import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import { FaInstagram } from 'react-icons/fa';
 import { BiStats } from 'react-icons/bi';

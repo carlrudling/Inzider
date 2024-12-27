@@ -1,5 +1,7 @@
+'use client';
 import React from 'react';
 import { FaInstagram, FaTwitter } from 'react-icons/fa';
+import { useRouter } from 'next/navigation';
 
 interface CreatorLandingPageProps {
   backgroundImage?: string;
@@ -11,6 +13,7 @@ interface CreatorLandingPageProps {
   buttonColor?: string;
   buttonTextColor?: string;
   textColor?: string; // New prop
+  username?: string; // Add username prop
 }
 
 const CreatorLandingPage: React.FC<CreatorLandingPageProps> = ({
@@ -23,9 +26,25 @@ const CreatorLandingPage: React.FC<CreatorLandingPageProps> = ({
   buttonColor = '#726238',
   buttonTextColor = '#FFFFFF',
   textColor = '#FFFFFF', // Default text color
+  username,
 }) => {
+  const router = useRouter();
+
   const handleButtonClick = (buttonType: string) => {
-    // ... existing code
+    switch (buttonType) {
+      case 'showGoToCards':
+        router.push(`/${username}/gotos`);
+        break;
+      case 'showTripCards':
+        router.push(`/${username}/trips`);
+        break;
+      case 'insta':
+        window.open(instagramLink, '_blank');
+        break;
+      case 'twitter':
+        window.open(twitterLink, '_blank');
+        break;
+    }
   };
 
   const buttonStyle = {

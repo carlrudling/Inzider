@@ -928,7 +928,7 @@ const GoToForm: React.FC<GoToFormProps> = ({
               onClick={() => setShowDeleteConfirmation(true)}
               className="px-4 py-2 bg-red-500 text-white font-semibold rounded-md shadow hover:bg-red-600 transition duration-200"
             >
-              Delete GoTo
+              Delete
             </button>
 
             <button

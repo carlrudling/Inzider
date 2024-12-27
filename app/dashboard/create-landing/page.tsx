@@ -3,7 +3,7 @@ import React, { useState, useRef, useMemo, useEffect } from 'react';
 import Nav from '../../../components/Nav';
 import { DndProvider } from 'react-dnd';
 import { HTML5Backend } from 'react-dnd-html5-backend';
-import CreatorLandingPage from '../../creator/[username]/page';
+import CreatorLandingPage from '@/components/CreatorLandingPage';
 import { useCreatorData } from '@/provider/CreatorProvider';
 import { useRouter } from 'next/navigation';
 

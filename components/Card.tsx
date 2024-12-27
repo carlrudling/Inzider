@@ -2,7 +2,7 @@ import React from 'react';
 import { FaStar } from 'react-icons/fa';
 import Link from 'next/link';
 
-interface GoToCardProps {
+interface CardProps {
   title: string;
   description: string;
   imageUrl: string;
@@ -12,7 +12,7 @@ interface GoToCardProps {
   navigateTo: string;
 }
 
-const GoToCard: React.FC<GoToCardProps> = ({
+const Card: React.FC<CardProps> = ({
   title,
   description,
   imageUrl,
@@ -86,4 +86,4 @@ const GoToCard: React.FC<GoToCardProps> = ({
   );
 };
 
-export default GoToCard;
+export default Card;

@@ -2,7 +2,7 @@
 import React from 'react';
 import Link from 'next/link';
 import Nav from '../../components/Nav';
-import GoToCard from '../../components/GoToCard';
+import GoToCard from '../../components/Card';
 import { BiSolidCircle } from 'react-icons/bi';
 import Lightbulb from '@/utils/icons/Lightbulb';
 import Coin from '@/utils/icons/Coin';
