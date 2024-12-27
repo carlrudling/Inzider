@@ -328,7 +328,7 @@ const HomePage = () => {
                   country={trip.location || 'Unknown'}
                   tag={trip.status === 'launch' ? 'Launched' : 'Draft'}
                   stars={trip.avgRating || 0}
-                  navigateTo={`/trip/${trip._id}`}
+                  navigateTo={`/dashboard/edit-trip/${trip._id}`}
                 />
               ))}
             </div>
