@@ -577,6 +577,27 @@ const TripForm: React.FC<TripFormProps> = ({
     handleSave('launch');
   };
 
+  // Add delete handler
+  const handleDelete = async () => {
+    if (!initialData?.id) return;
+
+    try {
+      const response = await fetch(`/api/trips/${initialData.id}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete trip');
+      }
+
+      alert('Trip deleted successfully!');
+      router.push('/dashboard'); // Redirect to dashboard after deletion
+    } catch (error) {
+      console.error('Error deleting trip:', error);
+      alert('Error deleting trip');
+    }
+  };
+
   return (
     <DndProvider backend={HTML5Backend}>
       <div className="relative min-h-screen bg-gray-100 flex">
@@ -998,6 +1019,14 @@ const TripForm: React.FC<TripFormProps> = ({
               ))}
           </div>
           <div className="fixed bottom-4 right-4 flex gap-4">
+            {isEditing && (
+              <button
+                onClick={() => setShowDeleteConfirmation(true)}
+                className="px-4 py-2 bg-red-500 text-white font-semibold rounded-md shadow hover:bg-red-600 transition duration-200"
+              >
+                Delete
+              </button>
+            )}
             <button
               onClick={handleSaveChanges}
               className="px-4 py-2 bg-blue-500 text-white font-semibold rounded-md shadow hover:bg-blue-600 transition duration-200"
@@ -1011,6 +1040,32 @@ const TripForm: React.FC<TripFormProps> = ({
               Launch
             </button>
           </div>
+
+          {/* Delete Confirmation Modal */}
+          {showDeleteConfirmation && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+              <div className="bg-white p-6 rounded-lg shadow-xl">
+                <h2 className="text-xl font-bold mb-4">Confirm Delete</h2>
+                <p className="mb-4">
+                  Are you sure you want to delete this trip?
+                </p>
+                <div className="flex justify-end gap-4">
+                  <button
+                    onClick={() => setShowDeleteConfirmation(false)}
+                    className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleDelete}
+                    className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </main>
       </div>
     </DndProvider>
