@@ -1,6 +1,7 @@
+'use client';
 import React from 'react';
 import { FaStar } from 'react-icons/fa';
-import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 interface CardProps {
   title: string;
@@ -8,7 +9,7 @@ interface CardProps {
   imageUrl: string;
   country: string;
   tag: string;
-  stars: number; // Number of stars to display
+  stars: number;
   navigateTo: string;
 }
 
@@ -21,68 +22,40 @@ const Card: React.FC<CardProps> = ({
   stars,
   navigateTo,
 }) => {
-  const renderStars = () => {
-    const fullStars = Math.floor(stars);
-    const totalStars = 5; // Assuming 5 as the maximum number of stars
-    const emptyStars = totalStars - fullStars;
-
-    return (
-      <>
-        {Array(fullStars)
-          .fill(0)
-          .map((_, index) => (
-            <FaStar
-              key={`full-star-${index}`}
-              className="h-4 w-4 text-yellow-500"
-            />
-          ))}
-        {Array(emptyStars)
-          .fill(0)
-          .map((_, index) => (
-            <FaStar
-              key={`empty-star-${index}`}
-              className="h-4 w-4 text-gray-200"
-            />
-          ))}
-      </>
-    );
-  };
+  const router = useRouter();
 
   return (
-    <Link
-      href={navigateTo}
-      className="block w-[300px] min-w-[300px] h-[420px] bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200 flex flex-col"
+    <div
+      onClick={() => router.push(navigateTo)}
+      className="w-[300px] min-w-[300px] bg-white rounded-lg shadow-lg overflow-hidden cursor-pointer hover:shadow-xl transition-shadow"
     >
-      {/* Image */}
-      <img
-        className="w-full h-48 object-cover rounded-t-xl"
-        src={imageUrl}
-        alt={title}
-      />
-
-      {/* Text Content */}
-      <div className="flex flex-col flex-1 p-4">
-        <div className="flex flex-row items-center mb-3">
-          <h3 className="text-base font-bold text-text-color2 mr-2">{title}</h3>
-          <span className="bg-indigo-100 text-indigo-800 text-center text-xs font-medium px-2.5 py-0.5 rounded-full">
+      {/* Image container with fixed height and full width */}
+      <div className="relative h-[200px] w-full">
+        <img
+          src={imageUrl}
+          alt={title}
+          className="absolute inset-0 w-full h-full object-cover rounded-t-lg"
+        />
+        <div className="absolute top-2 right-2">
+          <span className="bg-white px-2 py-1 rounded-full text-xs font-semibold">
             {tag}
           </span>
         </div>
-
-        {/* Description container */}
-        <div className="mb-4 flex-1">
-          <p className="text-sm text-text-color1 line-clamp-4 whitespace-normal">
-            {description}
-          </p>
-        </div>
-
-        {/* Star Ratings and Country */}
-        <div className="flex justify-between items-center">
-          <p className="text-sm text-text-color1">{country}</p>
-          <div className="flex flex-row space-x-1">{renderStars()}</div>
-        </div>
       </div>
-    </Link>
+
+      {/* Content section with flex layout */}
+      <div className="p-3 h-36 flex flex-col">
+        <div className="flex items-center justify-between mb-1">
+          <h3 className="font-semibold text-lg truncate">{title}</h3>
+          <div className="flex items-center">
+            <FaStar className="text-yellow-400 w-4 h-4" />
+            <span className="ml-1 text-sm">{stars.toFixed(1)}</span>
+          </div>
+        </div>
+        <p className="text-gray-600 text-sm mb-1 line-clamp-2">{description}</p>
+        <p className="text-gray-500 text-xs mt-auto">{country}</p>
+      </div>
+    </div>
   );
 };
 

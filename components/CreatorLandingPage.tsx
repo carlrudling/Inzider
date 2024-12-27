@@ -71,7 +71,7 @@ const CreatorLandingPage: React.FC<CreatorLandingPageProps> = ({
       {/* Main content wrapper */}
       <div className="flex flex-col eqtAab items-center mx-auto px-4 w-full z-10">
         {/* Profile image */}
-        <div className="relative w-28 h-28 mb-4 mt-8">
+        <div className="relative w-28 h-28 mb-4 mt-14">
           <img
             src={profileImage || 'https://via.placeholder.com/150'}
             alt="Profile"
@@ -80,10 +80,7 @@ const CreatorLandingPage: React.FC<CreatorLandingPageProps> = ({
         </div>
 
         {/* Creator Name */}
-        <p
-          style={textStyle}
-          className="font-poppins font-semibold text-lg mb-4"
-        >
+        <p style={textStyle} className="font-poppins font-semibold text-lg">
           {creatorName}
         </p>
 
