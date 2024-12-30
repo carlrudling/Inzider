@@ -490,7 +490,7 @@ const GoToForm: React.FC<GoToFormProps> = ({
       spots: updatedSpots,
       status,
     };
-
+    console.log('Specifics during save:', specifics);
     console.log('Processed slides before save:', processedSlides);
     console.log('Final GoTo Data:', gotoData);
 

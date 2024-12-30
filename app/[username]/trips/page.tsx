@@ -2,7 +2,7 @@ import { notFound } from 'next/navigation';
 import dbConnect from '@/utils/database';
 import Creator from '@/models/Creator';
 import Trip from '@/models/Trip';
-import GoToCard from '@/components/Card';
+import Card from '@/components/Card';
 
 async function getCreatorAndTrips(username: string) {
   await dbConnect();
@@ -37,7 +37,7 @@ export default async function CreatorTripsPage({
 
   return (
     <div
-      className="min-h-screen bg-cover bg-center pt-24"
+      className="min-h-screen bg-cover bg-center"
       style={{
         backgroundImage: `linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url(${
           data.backgroundImage || '/default-background.jpg'
@@ -51,7 +51,7 @@ export default async function CreatorTripsPage({
 
         <div className="flex flex-col items-center space-y-6">
           {data.trips.map((trip: any) => (
-            <GoToCard
+            <Card
               key={trip._id}
               title={trip.title}
               description={trip.description}

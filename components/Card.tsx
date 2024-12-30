@@ -1,7 +1,7 @@
 'use client';
 import React from 'react';
 import { FaStar } from 'react-icons/fa';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 
 interface CardProps {
   title: string;
@@ -23,10 +23,33 @@ const Card: React.FC<CardProps> = ({
   navigateTo,
 }) => {
   const router = useRouter();
+  const pathname = usePathname();
+
+  const handleClick = () => {
+    // If we're in the creator's public view, use the public route
+    if (pathname.startsWith('/dashboard')) {
+      router.push(navigateTo);
+    } else {
+      // Extract username from current path
+      const username = pathname.split('/')[1];
+      const parts = navigateTo.split('/');
+      const id = parts[parts.length - 1]; // Get the ID
+
+      // Determine the content type and ensure plural form
+      let contentType = parts[parts.length - 2]; // Get 'trip' or 'goto'
+      if (contentType === 'trip' || contentType === 'edit-trip') {
+        contentType = 'trips';
+      } else if (contentType === 'goto' || contentType === 'edit-goto') {
+        contentType = 'gotos';
+      }
+
+      router.push(`/${username}/${contentType}/${id}`);
+    }
+  };
 
   return (
     <div
-      onClick={() => router.push(navigateTo)}
+      onClick={handleClick}
       className="w-[300px] min-w-[300px] bg-white rounded-lg shadow-lg overflow-hidden cursor-pointer hover:shadow-xl transition-shadow"
     >
       {/* Image container with fixed height and full width */}

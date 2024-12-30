@@ -4,6 +4,11 @@ import { Schema, model, models, Document, Model } from 'mongoose';
 import { IReview, ReviewSchema } from './Review';
 import { ISpot, SpotSchema } from './Spot';
 
+interface ISpecific {
+  label: string;
+  value: string;
+}
+
 export interface IGoTo extends Document {
   title: string;
   description?: string;
@@ -25,6 +30,7 @@ export interface IGoTo extends Document {
   ratingAmount: number;
   slides?: { type: 'image' | 'video'; src: string }[];
   buyers: Schema.Types.ObjectId[];
+  specifics: ISpecific[];
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -60,6 +66,13 @@ const GoToSchema = new Schema<IGoTo>(
       },
     ],
     buyers: [{ type: Schema.Types.ObjectId, ref: 'User' }],
+    specifics: [
+      {
+        _id: false,
+        label: { type: String, required: true },
+        value: { type: String, required: true },
+      },
+    ],
   },
   { timestamps: true }
 );
