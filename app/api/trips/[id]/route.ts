@@ -38,71 +38,49 @@ export async function PUT(
 
     console.log('Existing Trip found:', existingTrip);
 
-    // Handle slides for both main trip and spots
-    const existingSlides = existingTrip.slides || [];
-    const updatedSlides = data.slides || [];
+    // Format the days data according to the schema
+    const formattedDays = data.days?.map((day: any) => ({
+      date: new Date(day.date),
+      spots: day.spots?.map((spot: any) => ({
+        title: spot.title,
+        location: spot.location,
+        description: spot.description,
+        specifics: spot.specifics?.map((specific: any) => ({
+          label: specific.label,
+          value: specific.value,
+        })),
+        slides: spot.slides?.map((slide: any) => ({
+          type: typeof slide === 'string' ? 'image' : slide.type || 'image',
+          src: typeof slide === 'string' ? slide : slide.src,
+        })),
+      })),
+    }));
 
-    console.log('Existing slides:', existingSlides);
-    console.log('Updated slides:', updatedSlides);
+    // Format the main slides
+    const formattedSlides = data.slides?.map((slide: any) => ({
+      type: typeof slide === 'string' ? 'image' : slide.type || 'image',
+      src: typeof slide === 'string' ? slide : slide.src,
+    }));
 
-    // Validate slides format
-    const validSlides = updatedSlides.every((slide: any) => {
-      if (typeof slide === 'string') {
-        // Handle string URLs (new uploads)
-        return true;
-      }
-      // Handle existing slide objects
-      return slide.src && slide.type && typeof slide.src === 'string';
-    });
+    // Format the specifics
+    const formattedSpecifics = data.specifics?.map((specific: any) => ({
+      label: specific.label,
+      value: specific.value,
+    }));
 
-    if (!validSlides) {
-      console.error('Invalid slide format detected:', updatedSlides);
-      return new NextResponse('Invalid Slide Format', { status: 400 });
-    }
-
-    // Handle removed slides
-    const removedSlides = existingSlides.filter(
-      (existingSlide: any) =>
-        !updatedSlides.some(
-          (updatedSlide: any) => updatedSlide.src === existingSlide.src
-        )
-    );
-    console.log('Slides to remove:', removedSlides);
-
-    // Delete removed slides from R2
-    for (const slide of removedSlides) {
-      if (slide.src) {
-        const key = new URL(slide.src).pathname.slice(1);
-        console.log('Deleting slide from R2 with key:', key);
-        await fetch(
-          `${process.env.NEXT_PUBLIC_SERVER_URL}/api/uploads/delete`,
-          {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ key }),
-          }
-        );
-      }
-    }
-
-    // Update the Trip document
+    // Update the Trip document with formatted data
     console.log('Updating Trip...');
     const updatedTrip = await Trip.findByIdAndUpdate(
       params.id,
       {
         ...data,
-        slides: updatedSlides.map((slide: any) => {
-          if (typeof slide === 'string') {
-            // Convert string URLs to proper slide objects
-            return {
-              src: slide,
-              type: slide.toLowerCase().endsWith('.mp4') ? 'video' : 'image',
-            };
-          }
-          return slide;
-        }),
+        days: formattedDays,
+        slides: formattedSlides,
+        specifics: formattedSpecifics,
+        startDate: new Date(data.startDate),
+        endDate: new Date(data.endDate),
       },
-      { new: true }
+      { new: true, runValidators: true }
     );
 
     console.log('Updated Trip:', updatedTrip);

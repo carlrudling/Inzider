@@ -2,7 +2,7 @@ import { notFound } from 'next/navigation';
 import dbConnect from '@/utils/database';
 import Trip from '@/models/Trip';
 import Creator from '@/models/Creator';
-import AboutPageComponent from '@/components/AboutPageComponent';
+import TripPageContent from './TripPageContent';
 
 async function getTripData(username: string, tripId: string) {
   await dbConnect();
@@ -24,16 +24,48 @@ async function getTripData(username: string, tripId: string) {
     return null;
   }
 
+  // Convert MongoDB objects to plain objects
+  const days =
+    trip.days?.map((day: any) => ({
+      date: day.date.toISOString(),
+      spots:
+        day.spots?.map((spot: any) => ({
+          title: spot.title,
+          location: spot.location,
+          description: spot.description,
+          specifics:
+            spot.specifics?.map((specific: any) => ({
+              label: specific.label,
+              value: specific.value,
+            })) || [],
+          slides:
+            spot.slides?.map((slide: any) =>
+              typeof slide === 'string'
+                ? { type: 'image', src: slide }
+                : { type: slide.type || 'image', src: slide.src }
+            ) || [],
+        })) || [],
+      id: day._id.toString(),
+    })) || [];
+
+  // Convert main trip slides
+  const slides =
+    trip.slides?.map((slide: any) => ({
+      type: slide.type || 'image',
+      src: slide.src,
+    })) || [];
+
   return {
     title: trip.title,
     price: trip.price,
     currency: trip.currency,
     description: trip.description,
-    slides: trip.slides,
+    slides,
     specifics: trip.specifics || [],
     reviewCount: trip.reviews?.length || 0,
     averageRating: trip.avgRating || 0,
     purchaseCount: trip.buyers?.length || 0,
+    days,
   };
 }
 
@@ -48,19 +80,5 @@ export default async function TripPage({
     notFound();
   }
 
-  return (
-    <div className="min-h-screen bg-white">
-      <AboutPageComponent
-        title={data.title}
-        price={data.price.toString()}
-        currency={data.currency}
-        slides={data.slides || []}
-        specifics={data.specifics}
-        creatorWords={data.description || ''}
-        reviewCount={data.reviewCount}
-        averageRating={data.averageRating}
-        purchaseCount={data.purchaseCount}
-      />
-    </div>
-  );
+  return <TripPageContent initialData={data} username={username} id={id} />;
 }

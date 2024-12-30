@@ -2,7 +2,7 @@ import { notFound } from 'next/navigation';
 import dbConnect from '@/utils/database';
 import GoTo from '@/models/GoTo';
 import Creator from '@/models/Creator';
-import AboutPageComponent from '@/components/AboutPageComponent';
+import GoToPageContent from './GoToPageContent';
 
 async function getGoToData(username: string, gotoId: string) {
   await dbConnect();
@@ -34,6 +34,7 @@ async function getGoToData(username: string, gotoId: string) {
     reviewCount: goto.reviews?.length || 0,
     averageRating: goto.avgRating || 0,
     purchaseCount: goto.buyers?.length || 0,
+    spots: goto.spots || [],
   };
 }
 
@@ -48,19 +49,5 @@ export default async function GoToPage({
     notFound();
   }
 
-  return (
-    <div className="min-h-screen bg-white">
-      <AboutPageComponent
-        title={data.title}
-        price={data.price.toString()}
-        currency={data.currency}
-        slides={data.slides || []}
-        specifics={data.specifics}
-        creatorWords={data.description || ''}
-        reviewCount={data.reviewCount}
-        averageRating={data.averageRating}
-        purchaseCount={data.purchaseCount}
-      />
-    </div>
-  );
+  return <GoToPageContent initialData={data} username={username} id={id} />;
 }

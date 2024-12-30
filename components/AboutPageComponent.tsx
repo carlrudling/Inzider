@@ -28,6 +28,10 @@ interface AboutPageComponentProps {
   averageRating: number;
   purchaseCount: number;
   status?: 'launch' | 'draft';
+  contentType: 'trip' | 'goto';
+  id: string;
+  username: string;
+  onGetItClick?: () => void;
   reviews?: Array<{
     rating: number;
     text: string;
@@ -46,6 +50,10 @@ const AboutPageComponent: React.FC<AboutPageComponentProps> = ({
   averageRating,
   purchaseCount,
   status = 'draft',
+  contentType,
+  id,
+  username,
+  onGetItClick,
   reviews = [],
 }) => {
   // Map of currency codes to symbols
@@ -161,12 +169,23 @@ const AboutPageComponent: React.FC<AboutPageComponentProps> = ({
               <span className="absolute left-1/2 transform -translate-x-1/2 font-poppins font-bold italic text-text-color1 text-lg">
                 Inzider
               </span>
-              <Link
-                href="/purchase"
-                className="bg-custom-purple py-2 px-4 text-white font-poppins rounded-md transition transform active:scale-95 active:shadow-none duration-200 whitespace-nowrap overflow-hidden text-ellipsis"
-              >
-                Get it!
-              </Link>
+              {onGetItClick ? (
+                <button
+                  onClick={onGetItClick}
+                  className="bg-custom-purple py-2 px-4 text-white font-poppins rounded-md transition transform active:scale-95 active:shadow-none duration-200 whitespace-nowrap overflow-hidden text-ellipsis"
+                >
+                  Get it!
+                </button>
+              ) : (
+                <Link
+                  href={`/${username}/${
+                    contentType === 'trip' ? 'trips' : 'gotos'
+                  }/${id}/purchase`}
+                  className="bg-custom-purple py-2 px-4 text-white font-poppins rounded-md transition transform active:scale-95 active:shadow-none duration-200 whitespace-nowrap overflow-hidden text-ellipsis"
+                >
+                  Get it!
+                </Link>
+              )}
             </div>
           </div>
         </div>
