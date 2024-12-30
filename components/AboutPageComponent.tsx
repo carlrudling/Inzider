@@ -27,6 +27,12 @@ interface AboutPageComponentProps {
   reviewCount: number;
   averageRating: number;
   purchaseCount: number;
+  status?: 'launch' | 'draft';
+  reviews?: Array<{
+    rating: number;
+    text: string;
+    userName?: string;
+  }>;
 }
 
 const AboutPageComponent: React.FC<AboutPageComponentProps> = ({
@@ -39,6 +45,8 @@ const AboutPageComponent: React.FC<AboutPageComponentProps> = ({
   reviewCount,
   averageRating,
   purchaseCount,
+  status = 'draft',
+  reviews = [],
 }) => {
   // Map of currency codes to symbols
   const currencySymbols: Record<string, string> = {
@@ -96,44 +104,57 @@ const AboutPageComponent: React.FC<AboutPageComponentProps> = ({
               </div>
             </div>
 
-            {/* Stars and Reviews */}
-            <div className="mt-2 flex items-center space-x-1 px-4">
-              {renderStars(averageRating)}
-              <p className="text-black text-sm ml-2 text-xs font-inter">
-                {reviewCount} Reviews
-              </p>
-            </div>
+            {/* Stars and Reviews - Only show if there are reviews */}
+            {(status === 'draft' || reviewCount > 0) && (
+              <div className="mt-2 flex items-center space-x-1 px-4">
+                {renderStars(averageRating)}
+                <p className="text-black text-sm ml-2 text-xs font-inter">
+                  {reviewCount} Reviews
+                </p>
+              </div>
+            )}
 
-            {/* Purchase count */}
-            <p className="px-4 text-black text-sm text-xs font-inter mt-2">
-              <span className="font-bold">{purchaseCount}</span> people have
-              purchased this package
-            </p>
+            {/* Purchase count - Only show if there are purchases */}
+            {(status === 'draft' || purchaseCount > 0) && (
+              <p className="px-4 text-black text-sm text-xs font-inter mt-2">
+                <span className="font-bold">{purchaseCount}</span> people have
+                purchased this package
+              </p>
+            )}
 
             {/* About section */}
             <p className="px-4 text-xs font-poppins font-semibold text-text-color1 mt-4">
               About
             </p>
 
-            {/* Carousel container - Center the carousel */}
-            <div className="flex justify-center mt-2 w-full px-4">
-              <Carousel slides={slides} />
-            </div>
+            {/* Carousel container - Only show if there are slides */}
+            {(status === 'draft' || slides.length > 0) && (
+              <div className="flex justify-center mt-2 w-full px-4">
+                <Carousel slides={slides} />
+              </div>
+            )}
 
-            {/* Creator's Words */}
-            <div className="flex justify-center mt-2 w-full px-4">
-              <TextBlock title="Creator's words:" text={creatorWords} />
-            </div>
+            {/* Creator's Words - Only show if there's content */}
+            {(status === 'draft' ||
+              (creatorWords && creatorWords.trim().length > 0)) && (
+              <div className="flex justify-center mt-2 w-full px-4">
+                <TextBlock title="Creator's words:" text={creatorWords} />
+              </div>
+            )}
 
-            {/* Specifics */}
-            <div className="flex justify-center mt-2 w-full px-4">
-              <DetailsBlock title="Specifics" details={specifics} />
-            </div>
+            {/* Specifics - Only show if there are specifics */}
+            {(status === 'draft' || specifics.length > 0) && (
+              <div className="flex justify-center mt-2 w-full px-4">
+                <DetailsBlock title="Specifics" details={specifics} />
+              </div>
+            )}
 
-            {/* Reviews List */}
-            <div className="flex justify-center mt-2 w-full px-4">
-              <ReviewsList />
-            </div>
+            {/* Reviews List - Only show if there are reviews */}
+            {(status === 'draft' || reviews.length > 0) && (
+              <div className="flex justify-center mt-2 w-full px-4">
+                <ReviewsList reviews={reviews} />
+              </div>
+            )}
 
             {/* Button and Logo */}
             <div className="relative w-full flex justify-end items-center my-4 pr-6">

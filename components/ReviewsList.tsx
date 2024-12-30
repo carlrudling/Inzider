@@ -1,31 +1,24 @@
 import React, { useState } from 'react';
-import { FaStar } from 'react-icons/fa'; // Import star icons
+import { FaStar } from 'react-icons/fa';
 
-const ReviewsList = () => {
-  // Sample reviews data (added more demo reviews)
-  const reviews = [
-    { rating: 3, text: 'Good but not so detailed.' },
-    {
-      rating: 2,
-      text: 'Interesting to see but too expensive to do any of it yourself.',
-    },
-    {
-      rating: 5,
-      text: 'Such an amazing trip and so nice to follow in her footsteps.',
-    },
-    { rating: 4, text: 'Great experience overall, but a bit tiring.' },
-    { rating: 5, text: 'Absolutely loved it! Would go again in a heartbeat.' },
-    { rating: 3, text: 'It was good, but some parts felt rushed.' },
-    {
-      rating: 4,
-      text: 'A solid recommendation for anyone looking for adventure.',
-    },
-    { rating: 5, text: 'Best trip I’ve had in years!' },
-    { rating: 4, text: 'Lovely views and amazing guides.' },
-  ];
+interface Review {
+  rating: number;
+  text: string;
+  userName?: string;
+}
 
+interface ReviewsListProps {
+  reviews: Review[];
+}
+
+const ReviewsList: React.FC<ReviewsListProps> = ({ reviews }) => {
   // State to manage how many reviews to show
   const [visibleReviews, setVisibleReviews] = useState(3);
+
+  // If no reviews, don't render anything
+  if (!reviews || reviews.length === 0) {
+    return null;
+  }
 
   // Function to toggle showing more or fewer reviews
   const toggleReviews = () => {
@@ -61,29 +54,25 @@ const ReviewsList = () => {
                 />
               ))}
             </div>
+            {review.userName && (
+              <p className="text-sm text-gray-500 mb-1">{review.userName}</p>
+            )}
             <p className="text-sm text-gray-700">{review.text}</p>
           </div>
         ))}
       </div>
 
-      {/* See more/See less button */}
-      <div className="flex justify-center mt-4">
-        {visibleReviews < reviews.length ? (
-          <button
-            onClick={toggleReviews}
-            className="text-sm font-medium text-custom-purple "
-          >
-            See more
-          </button>
-        ) : (
+      {/* See more/See less button - Only show if there are more than 3 reviews */}
+      {reviews.length > 3 && (
+        <div className="flex justify-center mt-4">
           <button
             onClick={toggleReviews}
             className="text-sm font-medium text-custom-purple"
           >
-            See less
+            {visibleReviews < reviews.length ? 'See more' : 'See less'}
           </button>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 };
