@@ -43,7 +43,7 @@ const GoToPage: React.FC<GoToPageProps> = ({
           {/* Render Spot Content */}
           <div className="flex flex-col w-full">
             {/* Spot Content */}
-            <div className="flex flex-col items-center w-full gap-4">
+            <div className="flex flex-col items-center w-full gap-3">
               {/* Header */}
               <GoToHeader
                 title={title}
@@ -58,17 +58,17 @@ const GoToPage: React.FC<GoToPageProps> = ({
               </div>
 
               {/* Location Block */}
-              <div className="flex justify-center mt-2 w-full px-4 overflow-hidden">
+              <div className="flex justify-center w-full px-4 overflow-hidden">
                 <LocationBlock address={address} />
               </div>
 
               {/* Creator's Words */}
-              <div className="flex justify-center mt-2 w-full px-4 overflow-hidden">
+              <div className="flex justify-center w-full px-4 overflow-hidden">
                 <TextBlock title="Creator's words:" text={creatorWords} />
               </div>
 
               {/* Specifics */}
-              <div className="flex justify-center mt-2 w-full px-4 overflow-hidden">
+              <div className="flex justify-center w-full px-4 overflow-hidden">
                 <DetailsBlock title="Specifics" details={specifics} />
               </div>
             </div>
