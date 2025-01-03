@@ -1,6 +1,6 @@
 'use client';
-import React from 'react';
-import { FaStar } from 'react-icons/fa';
+import React, { useRef, useEffect, useState } from 'react';
+import { FaStar, FaPlay } from 'react-icons/fa';
 import { useRouter, usePathname } from 'next/navigation';
 
 interface CardProps {
@@ -11,6 +11,7 @@ interface CardProps {
   tag: string;
   stars: number;
   navigateTo: string;
+  mediaType?: 'image' | 'video';
 }
 
 const Card: React.FC<CardProps> = ({
@@ -21,9 +22,45 @@ const Card: React.FC<CardProps> = ({
   tag,
   stars,
   navigateTo,
+  mediaType = 'image',
 }) => {
   const router = useRouter();
   const pathname = usePathname();
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [thumbnailUrl, setThumbnailUrl] = useState<string>('');
+
+  useEffect(() => {
+    // Clean up function to revoke object URLs
+    return () => {
+      if (thumbnailUrl) {
+        URL.revokeObjectURL(thumbnailUrl);
+      }
+    };
+  }, [thumbnailUrl]);
+
+  const generateThumbnail = (videoElement: HTMLVideoElement) => {
+    const canvas = document.createElement('canvas');
+    canvas.width = videoElement.videoWidth;
+    canvas.height = videoElement.videoHeight;
+    canvas
+      .getContext('2d')
+      ?.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
+
+    try {
+      const thumbnailUrl = canvas.toDataURL('image/jpeg');
+      setThumbnailUrl(thumbnailUrl);
+    } catch (error) {
+      console.error('Error generating thumbnail:', error);
+    }
+  };
+
+  const handleVideoLoad = (video: HTMLVideoElement) => {
+    // Set the current time to 1 second to skip potential black frames at the start
+    video.currentTime = 1;
+    video.addEventListener('seeked', () => generateThumbnail(video), {
+      once: true,
+    });
+  };
 
   const handleClick = () => {
     // If we're in the creator's public view, use the public route
@@ -52,13 +89,40 @@ const Card: React.FC<CardProps> = ({
       onClick={handleClick}
       className="w-[300px] min-w-[300px] bg-white rounded-lg shadow-lg overflow-hidden cursor-pointer hover:shadow-xl transition-shadow"
     >
-      {/* Image container with fixed height and full width */}
+      {/* Image/Video container with fixed height and full width */}
       <div className="relative h-[200px] w-full">
-        <img
-          src={imageUrl}
-          alt={title}
-          className="absolute inset-0 w-full h-full object-cover rounded-t-lg"
-        />
+        {mediaType === 'video' ? (
+          <>
+            <video
+              ref={videoRef}
+              src={imageUrl}
+              className="absolute inset-0 w-full h-full object-cover rounded-t-lg"
+              onLoadedMetadata={(e) =>
+                handleVideoLoad(e.target as HTMLVideoElement)
+              }
+              muted
+              style={{ display: thumbnailUrl ? 'none' : 'block' }}
+            />
+            {thumbnailUrl && (
+              <div className="absolute inset-0">
+                <img
+                  src={thumbnailUrl}
+                  alt={title}
+                  className="absolute inset-0 w-full h-full object-cover rounded-t-lg"
+                />
+                <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-30">
+                  <FaPlay className="text-white text-3xl" />
+                </div>
+              </div>
+            )}
+          </>
+        ) : (
+          <img
+            src={imageUrl}
+            alt={title}
+            className="absolute inset-0 w-full h-full object-cover rounded-t-lg"
+          />
+        )}
         <div className="absolute top-2 right-2">
           <span className="bg-white px-2 py-1 rounded-full text-xs font-semibold">
             {tag}

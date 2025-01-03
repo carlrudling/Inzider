@@ -312,12 +312,148 @@ const GoToForm: React.FC<GoToFormProps> = ({
     }
   };
 
-  const handleAboutPageMediaUpload = (
+  const uploadFile = async (
+    file: File,
+    retryCount = 0
+  ): Promise<string | null> => {
+    console.log(
+      'Starting file upload for:',
+      file.name,
+      `(${(file.size / (1024 * 1024)).toFixed(2)}MB)`
+    );
+    const maxRetries = 2;
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      console.log('Sending request to /api/uploads...');
+      const controller = new AbortController();
+      // Increase timeout for larger files: 30 seconds base + 1 second per MB
+      const timeout = 30000 + (file.size / (1024 * 1024)) * 1000;
+      console.log(
+        `Upload timeout set to ${(timeout / 1000).toFixed(1)} seconds`
+      );
+      const timeoutId = setTimeout(() => {
+        console.log('Upload timed out, aborting...');
+        controller.abort();
+      }, timeout);
+
+      const res = await fetch('/api/uploads', {
+        method: 'POST',
+        body: formData,
+        signal: controller.signal,
+      });
+
+      clearTimeout(timeoutId);
+      console.log('Upload response status:', res.status);
+
+      if (!res.ok) {
+        const errorText = await res.text();
+        console.error('Upload failed:', errorText);
+
+        if (retryCount < maxRetries) {
+          // Add exponential backoff between retries
+          const backoffTime = Math.min(1000 * Math.pow(2, retryCount), 10000);
+          console.log(`Waiting ${backoffTime / 1000} seconds before retry...`);
+          await new Promise((resolve) => setTimeout(resolve, backoffTime));
+
+          console.log(
+            `Retrying upload (attempt ${retryCount + 1} of ${maxRetries})...`
+          );
+          return uploadFile(file, retryCount + 1);
+        }
+        return null;
+      }
+
+      const data = await res.json();
+      console.log('Upload response data:', data);
+      return data.fileUrl as string;
+    } catch (error: any) {
+      console.error('Error during file upload:', error);
+
+      // Retry on network errors or timeouts
+      if (
+        retryCount < maxRetries &&
+        (error instanceof TypeError || error.name === 'AbortError')
+      ) {
+        // Add exponential backoff between retries
+        const backoffTime = Math.min(1000 * Math.pow(2, retryCount), 10000);
+        console.log(`Waiting ${backoffTime / 1000} seconds before retry...`);
+        await new Promise((resolve) => setTimeout(resolve, backoffTime));
+
+        console.log(
+          `Retrying upload (attempt ${retryCount + 1} of ${maxRetries})...`
+        );
+        return uploadFile(file, retryCount + 1);
+      }
+      return null;
+    }
+  };
+
+  const handleAboutPageMediaUpload = async (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
-    if (event.target.files) {
+    if (!event.target.files?.length) {
+      console.log('No files selected');
+      return;
+    }
+
+    try {
       const newFiles = Array.from(event.target.files);
-      setSlides((prevSlides) => [...prevSlides, ...newFiles]);
+      console.log(
+        'Files selected:',
+        newFiles.map((f) => f.name)
+      );
+
+      // Validate files before upload
+      const validFiles = newFiles.filter((file) => {
+        const isValidType =
+          file.type.startsWith('image/') || file.type.startsWith('video/');
+        const isValidSize = file.size <= 100 * 1024 * 1024; // 100MB limit
+
+        if (!isValidType) {
+          console.error('Invalid file type:', file.name);
+        }
+        if (!isValidSize) {
+          console.error('File too large:', file.name);
+        }
+
+        return isValidType && isValidSize;
+      });
+
+      if (validFiles.length !== newFiles.length) {
+        alert(
+          'Some files were skipped due to invalid type or size (max 100MB)'
+        );
+      }
+
+      // Upload files with progress tracking
+      for (const file of validFiles) {
+        console.log('Attempting to upload file:', file.name);
+
+        try {
+          const fileUrl = await uploadFile(file);
+          if (fileUrl) {
+            console.log('File uploaded successfully:', fileUrl);
+            setSlides((prevSlides) => [
+              ...prevSlides,
+              {
+                type: file.type.startsWith('image') ? 'image' : 'video',
+                src: fileUrl,
+              },
+            ]);
+          } else {
+            console.error('Failed to upload file:', file.name);
+            alert(`Failed to upload ${file.name}. Please try again.`);
+          }
+        } catch (uploadError) {
+          console.error('Error uploading file:', file.name, uploadError);
+          alert(`Error uploading ${file.name}. Please try again.`);
+        }
+      }
+    } catch (error) {
+      console.error('Error in handleAboutPageMediaUpload:', error);
+      alert('An error occurred while processing the files. Please try again.');
     }
   };
 
@@ -339,24 +475,6 @@ const GoToForm: React.FC<GoToFormProps> = ({
     setSlides(updatedSlides);
 
     console.log('Slides state after reordering:', updatedSlides);
-  };
-
-  const uploadFile = async (file: File) => {
-    const formData = new FormData();
-    formData.append('file', file);
-
-    const res = await fetch('/api/uploads', {
-      method: 'POST',
-      body: formData,
-    });
-
-    if (!res.ok) {
-      console.error('Upload failed');
-      return null;
-    }
-
-    const { fileUrl } = await res.json();
-    return fileUrl as string;
   };
 
   const uploadAllFiles = async (
@@ -684,13 +802,18 @@ const GoToForm: React.FC<GoToFormProps> = ({
                     <label className="block text-gray-700">
                       Upload images and/or videos
                     </label>
-                    <input
-                      type="file"
-                      multiple
-                      accept="image/*,video/*"
-                      onChange={handleAboutPageMediaUpload}
-                      className="bg-gray-200 text-gray-700 py-2 px-4 rounded-md w-full mt-2"
-                    />
+                    <div className="mt-2">
+                      <label className="cursor-pointer inline-block bg-gray-200 hover:bg-gray-300 text-gray-700 py-2 px-4 rounded-md transition-colors">
+                        <span>Choose files</span>
+                        <input
+                          type="file"
+                          multiple
+                          accept="image/*,video/*"
+                          onChange={handleAboutPageMediaUpload}
+                          className="hidden"
+                        />
+                      </label>
+                    </div>
                   </div>
 
                   <div className="flex flex-wrap mt-4 gap-4">

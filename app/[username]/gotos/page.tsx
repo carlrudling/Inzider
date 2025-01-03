@@ -3,6 +3,7 @@ import dbConnect from '@/utils/database';
 import Creator from '@/models/Creator';
 import GoTo from '@/models/GoTo';
 import GoToCard from '@/components/Card';
+import Card from '@/components/Card';
 
 async function getCreatorAndGotos(username: string) {
   await dbConnect();
@@ -50,18 +51,22 @@ export default async function CreatorGotosPage({
         </h1>
 
         <div className="flex flex-col items-center space-y-6">
-          {data.gotos.map((goto: any) => (
-            <GoToCard
-              key={goto._id}
-              title={goto.title}
-              description={goto.description}
-              imageUrl={goto.slides[0]?.src || '/default-image.jpg'}
-              country={goto.location || 'Unknown'}
-              tag="Launched"
-              stars={goto.avgRating || 0}
-              navigateTo={`/${username}/goto/${goto._id}`}
-            />
-          ))}
+          {data.gotos.map((goto: any) => {
+            const firstSlide = goto.slides[0];
+            return (
+              <Card
+                key={goto._id}
+                title={goto.title}
+                description={goto.description}
+                imageUrl={firstSlide?.src || '/default-image.jpg'}
+                country={goto.location || 'Unknown'}
+                tag="Launched"
+                stars={goto.avgRating || 0}
+                navigateTo={`/${username}/gotos/${goto._id}`}
+                mediaType={firstSlide?.type || 'image'}
+              />
+            );
+          })}
         </div>
 
         {data.gotos.length === 0 && (

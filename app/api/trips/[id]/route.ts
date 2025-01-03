@@ -38,6 +38,25 @@ export async function PUT(
 
     console.log('Existing Trip found:', existingTrip);
 
+    // Format the main slides
+    const formattedSlides = data.slides?.map((slide: any) => {
+      if (typeof slide === 'string') {
+        // If it's a string URL, check if it ends with common video extensions
+        const isVideo = /\.(mp4|webm|ogg|mov)$/i.test(slide);
+        return {
+          type: isVideo ? 'video' : 'image',
+          src: slide,
+        };
+      }
+      // If it's an object, use its type or detect from src if type is missing
+      return {
+        type:
+          slide.type ||
+          (/\.(mp4|webm|ogg|mov)$/i.test(slide.src) ? 'video' : 'image'),
+        src: slide.src,
+      };
+    });
+
     // Format the days data according to the schema
     const formattedDays = data.days?.map((day: any) => ({
       date: new Date(day.date),
@@ -49,17 +68,24 @@ export async function PUT(
           label: specific.label,
           value: specific.value,
         })),
-        slides: spot.slides?.map((slide: any) => ({
-          type: typeof slide === 'string' ? 'image' : slide.type || 'image',
-          src: typeof slide === 'string' ? slide : slide.src,
-        })),
+        slides: spot.slides?.map((slide: any) => {
+          if (typeof slide === 'string') {
+            // If it's a string URL, check if it ends with common video extensions
+            const isVideo = /\.(mp4|webm|ogg|mov)$/i.test(slide);
+            return {
+              type: isVideo ? 'video' : 'image',
+              src: slide,
+            };
+          }
+          // If it's an object, use its type or detect from src if type is missing
+          return {
+            type:
+              slide.type ||
+              (/\.(mp4|webm|ogg|mov)$/i.test(slide.src) ? 'video' : 'image'),
+            src: slide.src,
+          };
+        }),
       })),
-    }));
-
-    // Format the main slides
-    const formattedSlides = data.slides?.map((slide: any) => ({
-      type: typeof slide === 'string' ? 'image' : slide.type || 'image',
-      src: typeof slide === 'string' ? slide : slide.src,
     }));
 
     // Format the specifics

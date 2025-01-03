@@ -50,18 +50,22 @@ export default async function CreatorTripsPage({
         </h1>
 
         <div className="flex flex-col items-center space-y-6">
-          {data.trips.map((trip: any) => (
-            <Card
-              key={trip._id}
-              title={trip.title}
-              description={trip.description}
-              imageUrl={trip.slides[0]?.src || '/default-image.jpg'}
-              country={trip.location || 'Unknown'}
-              tag="Launched"
-              stars={trip.avgRating || 0}
-              navigateTo={`/${username}/trip/${trip._id}`}
-            />
-          ))}
+          {data.trips.map((trip: any) => {
+            const firstSlide = trip.slides[0];
+            return (
+              <Card
+                key={trip._id}
+                title={trip.title}
+                description={trip.description}
+                imageUrl={firstSlide?.src || '/default-image.jpg'}
+                country={trip.location || 'Unknown'}
+                tag="Launched"
+                stars={trip.avgRating || 0}
+                navigateTo={`/${username}/trips/${trip._id}`}
+                mediaType={firstSlide?.type || 'image'}
+              />
+            );
+          })}
         </div>
 
         {data.trips.length === 0 && (

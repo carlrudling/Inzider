@@ -9,6 +9,7 @@ import { IoPeople } from 'react-icons/io5';
 import Link from 'next/link';
 import { useCreatorData } from '../../provider/CreatorProvider';
 import LoadingPage from '../loading/page';
+import Card from '../../components/Card';
 
 const HomePage = () => {
   const { creatorData, loading } = useCreatorData();
@@ -272,18 +273,25 @@ const HomePage = () => {
             ref={scrollContainerRef1}
           >
             <div className="flex space-x-4 whitespace-nowrap">
-              {goTos.map((goto, index) => (
-                <GoToCard
-                  key={index}
-                  title={goto.title}
-                  description={goto.description}
-                  imageUrl={goto.slides[0]?.src || '/default-image.jpg'}
-                  country={goto.location || 'Unknown'}
-                  tag={goto.status === 'launch' ? 'Launched' : 'Draft'}
-                  stars={goto.avgRating || 0}
-                  navigateTo={`/dashboard/edit-goto/${goto._id}`}
-                />
-              ))}
+              {goTos.map((goto, index) => {
+                const firstSlide =
+                  goto.slides && goto.slides.length > 0 ? goto.slides[0] : null;
+                return (
+                  <Card
+                    key={index}
+                    title={goto.title}
+                    description={goto.description}
+                    imageUrl={
+                      firstSlide?.src || 'https://via.placeholder.com/150'
+                    }
+                    country={goto.location || 'Unknown'}
+                    tag={goto.status === 'launch' ? 'Launched' : 'Draft'}
+                    stars={goto.avgRating || 0}
+                    navigateTo={`/dashboard/edit-goto/${goto._id}`}
+                    mediaType={firstSlide?.type || 'image'}
+                  />
+                );
+              })}
             </div>
           </div>
           {showRightButton1 && (
@@ -315,22 +323,25 @@ const HomePage = () => {
             ref={scrollContainerRef2}
           >
             <div className="flex space-x-4 whitespace-nowrap">
-              {trips.map((trip, index) => (
-                <GoToCard
-                  key={index}
-                  title={trip.title}
-                  description={trip.description}
-                  imageUrl={
-                    trip.slides && trip.slides.length > 0
-                      ? trip.slides[0].src
-                      : 'https://via.placeholder.com/150'
-                  }
-                  country={trip.location || 'Unknown'}
-                  tag={trip.status === 'launch' ? 'Launched' : 'Draft'}
-                  stars={trip.avgRating || 0}
-                  navigateTo={`/dashboard/edit-trip/${trip._id}`}
-                />
-              ))}
+              {trips.map((trip, index) => {
+                const firstSlide =
+                  trip.slides && trip.slides.length > 0 ? trip.slides[0] : null;
+                return (
+                  <Card
+                    key={index}
+                    title={trip.title}
+                    description={trip.description}
+                    imageUrl={
+                      firstSlide?.src || 'https://via.placeholder.com/150'
+                    }
+                    country={trip.location || 'Unknown'}
+                    tag={trip.status === 'launch' ? 'Launched' : 'Draft'}
+                    stars={trip.avgRating || 0}
+                    navigateTo={`/dashboard/edit-trip/${trip._id}`}
+                    mediaType={firstSlide?.type || 'image'}
+                  />
+                );
+              })}
             </div>
           </div>
           {showRightButton2 && (
