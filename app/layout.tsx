@@ -1,13 +1,17 @@
 // app/layout.tsx
 import type { Metadata } from 'next';
-import '../styles/globals.css';
-import Provider from '../provider/SessionProvider';
-import ClientSessionHandler from '@/provider/ClientSideHandler';
+import { Inter } from 'next/font/google';
+import '@/styles/globals.css';
+import SessionProvider from '@/provider/SessionProvider';
 import { CreatorProvider } from '@/provider/CreatorProvider';
+import ClientSideHandler from '@/provider/ClientSideHandler';
+import QueryProvider from '@/provider/QueryProvider';
+
+const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
   title: 'Inzider',
-  description: 'Inzide app',
+  description: 'Travel like a local',
 };
 
 export default function RootLayout({
@@ -17,13 +21,15 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <Provider>
-        <CreatorProvider>
-          <body>
-            <ClientSessionHandler>{children}</ClientSessionHandler>
-          </body>
-        </CreatorProvider>
-      </Provider>
+      <body className={inter.className}>
+        <SessionProvider>
+          <QueryProvider>
+            <CreatorProvider>
+              <ClientSideHandler>{children}</ClientSideHandler>
+            </CreatorProvider>
+          </QueryProvider>
+        </SessionProvider>
+      </body>
     </html>
   );
 }

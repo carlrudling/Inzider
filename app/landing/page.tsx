@@ -44,7 +44,7 @@ const LandingPage: React.FC<landingPageProps> = ({
             {description}
           </p>
           <Link
-            href="/signup"
+            href="/auth/signup"
             className="px-6 py-3 font-semibold text-white font-poppins bg-custom-purple rounded-full hover:scale-105 hover:shadow-lg transition transform active:scale-95 active:shadow-none duration-200"
           >
             {buttonText}
@@ -108,7 +108,7 @@ const LandingPage: React.FC<landingPageProps> = ({
           Join a movement of creatives shaping the future of travel
         </h2>
         <Link
-          href="/signup"
+          href="/auth/signup"
           className="px-6 py-3 font-semibold text-text-color2 font-poppins bg-custom-new-lightBeige rounded-full hover:scale-105 hover:shadow-lg transition transform active:scale-95 active:shadow-none duration-200"
         >
           Join

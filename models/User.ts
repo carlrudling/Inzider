@@ -1,31 +1,29 @@
-import { Schema, model, models, Document, Model } from 'mongoose';
+import { Schema, model, models, Document, Types } from 'mongoose';
 
-export interface IUser extends Document {
+export interface IUser {
+  _id?: Types.ObjectId;
+  name: string;
   email: string;
-  password: string;
-  boughtTrips: Schema.Types.ObjectId[];
-  boughtGotos: Schema.Types.ObjectId[];
+  password?: string;
+  username: string;
+  image?: string;
+  purchases?: Types.ObjectId[];
   createdAt?: Date;
   updatedAt?: Date;
 }
 
-const UserSchema = new Schema<IUser>(
+const userSchema = new Schema<IUser>(
   {
-    email: {
-      type: String,
-      unique: true,
-      required: true,
-      validate: {
-        validator: (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v),
-        message: (props: any) => `${props.value} is not a valid email!`,
-      },
-    },
-    password: { type: String, required: true },
-    boughtTrips: [{ type: Schema.Types.ObjectId, ref: 'Trip' }],
-    boughtGotos: [{ type: Schema.Types.ObjectId, ref: 'GoTo' }],
+    name: { type: String, required: true },
+    email: { type: String, required: true, unique: true },
+    password: { type: String },
+    username: { type: String, required: true, unique: true },
+    image: { type: String },
+    purchases: [{ type: Schema.Types.ObjectId, ref: 'Purchase' }],
   },
-  { timestamps: true }
+  {
+    timestamps: true,
+  }
 );
 
-const User: Model<IUser> = models.User || model<IUser>('User', UserSchema);
-export default User;
+export default models.User || model<IUser>('User', userSchema);

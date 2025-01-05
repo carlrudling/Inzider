@@ -1,64 +1,55 @@
-import { Schema, model, models, Document, Model } from 'mongoose';
+import { Schema, model, models, Document, Types } from 'mongoose';
 
 export interface ICreator extends Document {
+  _id: Types.ObjectId;
   name: string;
-  username: string;
   email: string;
+  username: string;
   password?: string;
-  profileImage?: string;
+  image?: string;
   description?: string;
   instagram?: string;
-  xLink?: string; // For Twitter/X
   tiktok?: string;
+  xLink?: string;
   youtube?: string;
-  tripButtonColor?: string;
-  tripButtonText?: string;
-  gotoButtonColor?: string;
-  gotoButtonText?: string;
+  profileImage?: string;
   backgroundImage?: string;
   textColor?: string;
-  discountCode?: string; // Or reference a DiscountCode model
-  myTrips: Schema.Types.ObjectId[];
-  myGotos: Schema.Types.ObjectId[];
-  createdAt?: Date;
-  updatedAt?: Date;
+  tripButtonColor?: string;
+  tripButtonText?: string;
   buttonColor?: string;
   buttonTextColor?: string;
+  myTrips: Types.ObjectId[];
+  myGotos: Types.ObjectId[];
+  createdAt: Date;
+  updatedAt: Date;
 }
 
-const CreatorSchema = new Schema<ICreator>(
+const creatorSchema = new Schema<ICreator>(
   {
     name: { type: String, required: true },
+    email: { type: String, required: true, unique: true },
     username: { type: String, required: true, unique: true },
-    email: {
-      type: String,
-      unique: true,
-      required: true,
-      validate: {
-        validator: (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v),
-        message: (props: any) => `${props.value} is not a valid email!`,
-      },
-    },
-    password: { type: String, required: false },
-    profileImage: { type: String },
+    password: { type: String },
+    image: { type: String },
     description: { type: String },
     instagram: { type: String },
-    xLink: { type: String }, // Twitter/X
     tiktok: { type: String },
+    xLink: { type: String },
     youtube: { type: String },
-    gotoButtonColor: { type: String },
-    gotoButtonText: { type: String },
+    profileImage: { type: String },
     backgroundImage: { type: String },
     textColor: { type: String },
-    discountCode: { type: String },
+    tripButtonColor: { type: String },
+    tripButtonText: { type: String },
+    buttonColor: { type: String },
+    buttonTextColor: { type: String },
     myTrips: [{ type: Schema.Types.ObjectId, ref: 'Trip' }],
     myGotos: [{ type: Schema.Types.ObjectId, ref: 'GoTo' }],
-    buttonColor: { type: String, default: '#726238' },
-    buttonTextColor: { type: String, default: '#FFFFFF' },
   },
-  { timestamps: true }
+  {
+    timestamps: true,
+  }
 );
 
-const Creator: Model<ICreator> =
-  models.Creator || model<ICreator>('Creator', CreatorSchema);
-export default Creator;
+export default models.Creator || model<ICreator>('Creator', creatorSchema);

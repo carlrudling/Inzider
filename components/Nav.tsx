@@ -64,13 +64,13 @@ const Nav: React.FC<NavProps> = ({ isWhiteText }) => {
         ) : (
           <div className="flex flex-row">
             <Link
-              href="/signin"
+              href="/auth/signin"
               className={isWhiteText ? 'white_round_btn' : 'black_round_btn'}
             >
               Sign in
             </Link>
             <Link
-              href="/signup"
+              href="/auth/signup"
               className={isWhiteText ? 'white_round_btn' : 'black_round_btn'}
             >
               Create Account
@@ -119,13 +119,13 @@ const Nav: React.FC<NavProps> = ({ isWhiteText }) => {
         ) : (
           <div className="flex flex-row">
             <Link
-              href="/signin"
+              href="/auth/signin"
               className={isWhiteText ? 'white_round_btn' : 'black_round_btn'}
             >
               Sign in
             </Link>
             <Link
-              href="/signup"
+              href="/auth/signup"
               className={isWhiteText ? 'white_round_btn' : 'black_round_btn'}
             >
               Create Account

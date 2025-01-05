@@ -10,6 +10,7 @@ import Link from 'next/link';
 import { useCreatorData } from '../../provider/CreatorProvider';
 import LoadingPage from '../loading/page';
 import Card from '../../components/Card';
+import Loader from '@/components/Loader';
 
 const HomePage = () => {
   const { creatorData, loading } = useCreatorData();
@@ -129,11 +130,11 @@ const HomePage = () => {
 
   // Now handle conditions AFTER all hooks are defined
   if (loading) {
-    return <LoadingPage />;
+    return <Loader />;
   }
 
   if (!creatorData) {
-    return <LoadingPage />;
+    return <Loader />;
   }
 
   return (

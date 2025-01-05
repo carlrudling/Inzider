@@ -1,25 +1,41 @@
 import { NextResponse } from 'next/server';
-import dbConnect from '@/utils/database';
+import { Types } from 'mongoose';
 import Creator from '@/models/Creator';
+import dbConnect from '@/utils/database';
 
 export async function GET(
-  _req: Request,
+  request: Request,
   { params }: { params: { id: string } }
 ) {
   try {
     await dbConnect();
-    const creator = await Creator.findById(params.id);
-    if (!creator) {
-      return new NextResponse('Not Found', { status: 404 });
+
+    let creator;
+    const { id } = params;
+
+    // Try to find by MongoDB ID first
+    if (Types.ObjectId.isValid(id)) {
+      creator = await Creator.findById(id);
     }
 
-    // Map old fields to new fields if new ones aren't set
-    creator.buttonColor = creator.buttonColor || creator.tripButtonColor;
-    creator.buttonTextColor = creator.buttonTextColor || creator.tripButtonText;
+    // If not found or invalid ID, try to find by email
+    if (!creator) {
+      // First try exact email match
+      creator = await Creator.findOne({ email: id });
 
-    return NextResponse.json(creator, { status: 200 });
-  } catch (error: any) {
-    console.error(error);
+      // If still not found, try to find by username (for backward compatibility)
+      if (!creator) {
+        creator = await Creator.findOne({ username: id.split('@')[0] });
+      }
+    }
+
+    if (!creator) {
+      return new NextResponse('Creator not found', { status: 404 });
+    }
+
+    return NextResponse.json(creator);
+  } catch (error) {
+    console.error('Error in creators/[id] route:', error);
     return new NextResponse('Internal Server Error', { status: 500 });
   }
 }
