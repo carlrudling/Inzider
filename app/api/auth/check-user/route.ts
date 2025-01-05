@@ -17,15 +17,33 @@ export async function POST(req: Request) {
     const creator = await Creator.findOne({ email });
     const user = await User.findOne({ email });
 
+    // If both accounts exist
+    if (creator && user) {
+      return NextResponse.json({
+        exists: true,
+        type: 'user', // Default to user, will be changed in check-type
+        hasMultipleAccounts: true,
+      });
+    }
+
+    // Single account
     if (creator) {
-      return NextResponse.json({ exists: true, type: 'creator' });
+      return NextResponse.json({
+        exists: true,
+        type: 'creator',
+        hasMultipleAccounts: false,
+      });
     }
 
     if (user) {
-      return NextResponse.json({ exists: true, type: 'user' });
+      return NextResponse.json({
+        exists: true,
+        type: 'user',
+        hasMultipleAccounts: false,
+      });
     }
 
-    return NextResponse.json({ exists: false });
+    return NextResponse.json({ exists: false, hasMultipleAccounts: false });
   } catch (error) {
     console.error('Error checking user:', error);
     return new NextResponse('Internal Server Error', { status: 500 });

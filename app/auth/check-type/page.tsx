@@ -34,12 +34,30 @@ export default function CheckType() {
       setIsLoading(true);
       setError('');
 
+      // Get the correct ID for the selected type
+      const res = await fetch('/api/auth/get-account-id', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: session.user?.email,
+          type: selectedType,
+        }),
+      });
+
+      if (!res.ok) {
+        throw new Error('Failed to get account ID');
+      }
+
+      const { id } = await res.json();
+
       // If selecting a type they don't have an account for, create it
       if (
         (selectedType === 'creator' && !session.user?.hasCreatorAccount) ||
         (selectedType === 'user' && !session.user?.hasUserAccount)
       ) {
-        const res = await fetch('/api/auth/google-type', {
+        const createRes = await fetch('/api/auth/google-type', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -51,16 +69,17 @@ export default function CheckType() {
           }),
         });
 
-        if (!res.ok) {
+        if (!createRes.ok) {
           throw new Error('Failed to set user type');
         }
       }
 
-      // Update the session with the selected type
+      // Update the session with the selected type and correct ID
       await update({
         ...session,
         user: {
           ...session.user,
+          id,
           type: selectedType,
           needsTypeSelection: false,
         },
@@ -77,29 +96,39 @@ export default function CheckType() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
-        <h1 className="text-2xl font-bold text-center mb-6">
+      <div className="bg-white p-8 rounded-lg shadow-md w-96">
+        <h1 className="text-2xl font-bold mb-6 text-center">
           Choose Your Account Type
         </h1>
+        <p className="mb-6 text-center text-gray-600">
+          Select how you want to use Inzider
+        </p>
         {error && <p className="text-red-500 text-center mb-4">{error}</p>}
-        <div className="space-y-4">
+        <div className="space-y-4 mb-6">
           <button
             onClick={() => handleTypeSelection('creator')}
             disabled={isLoading}
-            className="w-full py-3 px-4 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+            className="w-full py-4 px-4 rounded-lg border hover:border-blue-500 transition-all"
           >
-            {session.user?.hasCreatorAccount
-              ? 'Continue as Creator'
-              : 'I want to create content'}
+            <div className="font-semibold text-lg mb-1">Creator</div>
+            <div className="text-sm text-gray-600">
+              {session.user?.hasCreatorAccount
+                ? 'Continue as Creator'
+                : 'I want to create and sell trips and guides'}
+            </div>
           </button>
+
           <button
             onClick={() => handleTypeSelection('user')}
             disabled={isLoading}
-            className="w-full py-3 px-4 bg-gray-600 text-white rounded-md hover:bg-gray-700 disabled:opacity-50"
+            className="w-full py-4 px-4 rounded-lg border hover:border-blue-500 transition-all"
           >
-            {session.user?.hasUserAccount
-              ? 'Continue as User'
-              : 'I want to explore content'}
+            <div className="font-semibold text-lg mb-1">User</div>
+            <div className="text-sm text-gray-600">
+              {session.user?.hasUserAccount
+                ? 'Continue as User'
+                : 'I want to discover and purchase trips and guides'}
+            </div>
           </button>
         </div>
       </div>

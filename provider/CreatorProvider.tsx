@@ -54,18 +54,26 @@ export const CreatorProvider = ({
 
   useEffect(() => {
     const fetchCreatorData = async () => {
-      if (!session?.user?.id) {
+      if (!session?.user?.email) {
         setLoading(false);
         return;
       }
 
       try {
-        const res = await fetch(`/api/creators/${session.user.id}`);
+        // First try to find by ID
+        let res = await fetch(`/api/creators/${session.user.id}`);
+
+        // If that fails, try to find by email
+        if (!res.ok) {
+          res = await fetch(`/api/creators/by-email/${session.user.email}`);
+        }
+
         if (!res.ok) {
           setError('Failed to fetch creator data');
           setLoading(false);
           return;
         }
+
         const data = await res.json();
         setCreatorData(data);
         setLoading(false);

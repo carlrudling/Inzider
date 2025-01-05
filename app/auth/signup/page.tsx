@@ -26,6 +26,32 @@ export default function SignUp() {
         throw new Error('Please select if you want to be a creator or user');
       }
 
+      // Check if user exists and what type they have
+      const checkRes = await fetch('/api/auth/check-user', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email }),
+      });
+
+      if (!checkRes.ok) {
+        throw new Error('Failed to check user status');
+      }
+
+      const { exists, type: existingType } = await checkRes.json();
+
+      // If they already have this type of account, redirect to sign in
+      if (exists && existingType === type) {
+        setError(
+          'You already have this type of account. Please sign in instead.'
+        );
+        setTimeout(() => {
+          router.push('/auth/signin');
+        }, 2000);
+        return;
+      }
+
       // Add retry logic
       let retryCount = 0;
       const maxRetries = 3;
@@ -42,11 +68,21 @@ export default function SignUp() {
           });
 
           if (result?.error) {
+            // If they're adding a new account type, show a different message
+            if (result.error === 'You already have this type of account') {
+              setError(
+                'You already have this type of account. Please sign in instead.'
+              );
+              setTimeout(() => {
+                router.push('/auth/signin');
+              }, 2000);
+              return;
+            }
             throw new Error(result.error);
           }
 
           if (result?.ok) {
-            router.push(type === 'creator' ? '/dashboard' : '/user');
+            router.push('/auth/check-type');
             return;
           }
 

@@ -91,10 +91,65 @@ export const authOptions: NextAuthOptions = {
               existingUser,
             });
 
-            if (existingCreator || existingUser) {
-              throw new Error('Email already registered');
+            // If they're trying to create an account type they already have
+            if (
+              (type === 'creator' && existingCreator) ||
+              (type === 'user' && existingUser)
+            ) {
+              throw new Error('You already have this type of account');
             }
 
+            // If they have an existing account of a different type, we'll add the new type
+            if (existingCreator || existingUser) {
+              if (!name) {
+                throw new Error('Name is required for signup');
+              }
+
+              const hashedPassword = await bcrypt.hash(password, 10);
+              const username = email.split('@')[0];
+
+              if (type === 'creator' && existingUser) {
+                console.log('Adding creator account to existing user...');
+                const newCreator = await Creator.create({
+                  email,
+                  password: hashedPassword,
+                  username,
+                  name,
+                });
+                console.log('Creator account added:', newCreator);
+
+                return {
+                  id: newCreator._id.toString(),
+                  email: newCreator.email,
+                  name: newCreator.name,
+                  type: 'creator' as const,
+                  needsTypeSelection: true,
+                  hasCreatorAccount: true,
+                  hasUserAccount: true,
+                };
+              } else if (type === 'user' && existingCreator) {
+                console.log('Adding user account to existing creator...');
+                const newUser = await User.create({
+                  email,
+                  password: hashedPassword,
+                  username,
+                  name,
+                });
+                console.log('User account added:', newUser);
+
+                return {
+                  id: newUser._id.toString(),
+                  email: newUser.email,
+                  name: newUser.name,
+                  type: 'user' as const,
+                  needsTypeSelection: true,
+                  hasCreatorAccount: true,
+                  hasUserAccount: true,
+                };
+              }
+            }
+
+            // If no existing accounts, create a new one
             if (!name) {
               throw new Error('Name is required for signup');
             }
@@ -140,11 +195,13 @@ export const authOptions: NextAuthOptions = {
             const creator = await Creator.findOne({ email });
             const user = await User.findOne({ email });
 
-            const account = creator || user;
-            if (!account) {
+            // Check if either account exists
+            if (!creator && !user) {
               throw new Error('No account found with this email');
             }
 
+            // Check password for the appropriate account
+            const account = creator || user;
             if (!account.password) {
               throw new Error('This account uses social login');
             }
@@ -170,13 +227,15 @@ export const authOptions: NextAuthOptions = {
               };
             }
 
-            // Single account type
+            // Single account type - use the account that exists
             return {
               id: account._id.toString(),
               email: account.email,
               name: account.name,
               type: creator ? 'creator' : 'user',
               needsTypeSelection: false,
+              hasCreatorAccount: !!creator,
+              hasUserAccount: !!user,
             };
           }
         } catch (error) {
@@ -199,17 +258,30 @@ export const authOptions: NextAuthOptions = {
   },
   callbacks: {
     async jwt({ token, user, account, profile, trigger, session }) {
-      // For initial sign in
-      if (account && account.provider === 'google') {
+      // Initial sign in
+      if (user) {
+        // This runs when the user first signs in
+        return {
+          ...token,
+          id: user.id,
+          type: user.type,
+          needsTypeSelection: user.needsTypeSelection,
+          hasCreatorAccount: user.hasCreatorAccount,
+          hasUserAccount: user.hasUserAccount,
+        };
+      }
+
+      // For Google sign in
+      if (account?.provider === 'google' && profile?.email) {
         await dbConnect();
 
         console.log('Google sign-in JWT callback:', { account, profile });
 
         // Check what accounts exist for this email
         const existingCreator = await Creator.findOne({
-          email: profile?.email,
+          email: profile.email,
         });
-        const existingUser = await User.findOne({ email: profile?.email });
+        const existingUser = await User.findOne({ email: profile.email });
 
         const hasCreatorAccount = !!existingCreator;
         const hasUserAccount = !!existingUser;
@@ -219,45 +291,58 @@ export const authOptions: NextAuthOptions = {
           hasUserAccount,
         });
 
-        // Get the selected type from query parameters
-        const params = new URLSearchParams(account.query as string);
-        const selectedType = params.get('selectedType') as
-          | 'creator'
-          | 'user'
-          | null;
-        console.log('Selected type from query:', selectedType);
-
-        // If a type was selected and the user has that account type, use it
-        if (
-          selectedType &&
-          ((selectedType === 'creator' && hasCreatorAccount) ||
-            (selectedType === 'user' && hasUserAccount))
-        ) {
-          const id =
-            selectedType === 'creator'
-              ? existingCreator?._id.toString()
-              : existingUser?._id.toString();
+        // If user has both account types, they need to select one
+        if (hasCreatorAccount && hasUserAccount) {
           return {
             ...token,
-            id,
-            email: profile?.email,
-            name: profile?.name,
-            picture: profile?.picture,
-            type: selectedType,
-            needsTypeSelection: false,
-            hasCreatorAccount,
-            hasUserAccount,
+            email: profile.email,
+            name: profile.name,
+            picture: profile.picture,
+            hasCreatorAccount: true,
+            hasUserAccount: true,
+            needsTypeSelection: true,
+            type: 'user', // default type
+            id: existingUser?._id.toString(), // temporary ID until type is selected
           };
         }
 
-        // Otherwise, go through type selection
+        // If user has only one account type, use that
+        if (hasCreatorAccount) {
+          return {
+            ...token,
+            id: existingCreator._id.toString(),
+            email: profile.email,
+            name: profile.name,
+            picture: profile.picture,
+            type: 'creator',
+            needsTypeSelection: false,
+            hasCreatorAccount: true,
+            hasUserAccount: false,
+          };
+        }
+
+        if (hasUserAccount) {
+          return {
+            ...token,
+            id: existingUser._id.toString(),
+            email: profile.email,
+            name: profile.name,
+            picture: profile.picture,
+            type: 'user',
+            needsTypeSelection: false,
+            hasCreatorAccount: false,
+            hasUserAccount: true,
+          };
+        }
+
+        // If no accounts exist, they'll need to create one
         return {
           ...token,
-          email: profile?.email,
-          name: profile?.name,
-          picture: profile?.picture,
-          hasCreatorAccount,
-          hasUserAccount,
+          email: profile.email,
+          name: profile.name,
+          picture: profile.picture,
+          hasCreatorAccount: false,
+          hasUserAccount: false,
           needsTypeSelection: true,
           type: 'user', // default type
         };
@@ -265,7 +350,6 @@ export const authOptions: NextAuthOptions = {
 
       // Handle session updates
       if (trigger === 'update' && session?.user) {
-        console.log('Session update:', session);
         return {
           ...token,
           ...session.user,
@@ -276,28 +360,29 @@ export const authOptions: NextAuthOptions = {
     },
     async session({ session, token }) {
       if (session.user) {
-        session.user.id = token.id;
-        session.user.type = token.type;
-        session.user.needsTypeSelection = token.needsTypeSelection;
-        session.user.hasCreatorAccount = token.hasCreatorAccount;
-        session.user.hasUserAccount = token.hasUserAccount;
+        // Copy all relevant fields from token to session.user
+        session.user = {
+          ...session.user, // Keep existing fields like name, email, image
+          id: token.id,
+          type: token.type,
+          needsTypeSelection: token.needsTypeSelection,
+          hasCreatorAccount: token.hasCreatorAccount,
+          hasUserAccount: token.hasUserAccount,
+        };
 
+        // Only fetch additional user data if we have a final type
         if (!token.needsTypeSelection && token.email) {
           try {
             await dbConnect();
             if (token.type === 'creator') {
               const creator = await Creator.findOne({ email: token.email });
               if (creator) {
-                session.user.id = creator._id.toString();
                 session.user.username = creator.username;
-                session.user.type = 'creator';
               }
             } else {
               const user = await User.findOne({ email: token.email });
               if (user) {
-                session.user.id = user._id.toString();
                 session.user.username = user.username;
-                session.user.type = 'user';
               }
             }
           } catch (error) {
@@ -315,10 +400,12 @@ export const authOptions: NextAuthOptions = {
         user,
         credentials,
       });
+
       if (account?.provider === 'credentials') {
         console.log('SignIn Callback - Credentials provider, user:', user);
         return true;
       }
+
       if (!profile?.email) return false;
 
       await dbConnect();
@@ -328,7 +415,34 @@ export const authOptions: NextAuthOptions = {
         const existingCreator = await Creator.findOne({ email: profile.email });
         const existingUser = await User.findOne({ email: profile.email });
 
-        // Allow sign in if user exists or is new
+        // Set up the user object with the correct properties
+        if (existingCreator && existingUser) {
+          user.needsTypeSelection = true;
+          user.hasCreatorAccount = true;
+          user.hasUserAccount = true;
+          user.type = 'user'; // default type
+          user.id = existingUser._id.toString();
+        } else if (existingCreator) {
+          user.needsTypeSelection = false;
+          user.hasCreatorAccount = true;
+          user.hasUserAccount = false;
+          user.type = 'creator';
+          user.id = existingCreator._id.toString();
+        } else if (existingUser) {
+          user.needsTypeSelection = false;
+          user.hasCreatorAccount = false;
+          user.hasUserAccount = true;
+          user.type = 'user';
+          user.id = existingUser._id.toString();
+        } else {
+          // New user
+          user.needsTypeSelection = true;
+          user.hasCreatorAccount = false;
+          user.hasUserAccount = false;
+          user.type = 'user'; // default type
+        }
+
+        console.log('Modified user object:', user);
         return true;
       }
 

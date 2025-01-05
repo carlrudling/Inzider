@@ -32,23 +32,19 @@ export default function SignIn() {
 
       if (result?.error) {
         setError(result.error);
+        return;
+      }
+
+      // Get the session to check if type selection is needed
+      const session = await fetch('/api/auth/session');
+      const sessionData = await session.json();
+
+      if (sessionData?.user?.needsTypeSelection) {
+        router.push('/auth/check-type');
+      } else if (sessionData?.user?.type === 'creator') {
+        router.push('/dashboard');
       } else {
-        // Check if user exists in both collections
-        const checkRes = await fetch('/api/auth/check-user', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ email }),
-        });
-
-        const { exists, type } = await checkRes.json();
-
-        if (exists) {
-          router.push(type === 'creator' ? '/dashboard' : '/user');
-        } else {
-          setError('Account not found');
-        }
+        router.push('/user');
       }
     } catch (err: any) {
       setError(err.message || 'Something went wrong');
