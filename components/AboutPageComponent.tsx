@@ -6,6 +6,8 @@ import ReviewsList from './ReviewsList';
 import DetailsBlock from './DetailsBlock';
 import TextBlock from './TextBlock';
 import Link from 'next/link';
+import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
 
 interface Slide {
   type: 'image' | 'video';
@@ -32,6 +34,7 @@ interface AboutPageComponentProps {
   id: string;
   username: string;
   onGetItClick?: () => void;
+  hasPurchased?: boolean;
   reviews?: Array<{
     rating: number;
     text: string;
@@ -54,8 +57,56 @@ const AboutPageComponent: React.FC<AboutPageComponentProps> = ({
   id,
   username,
   onGetItClick,
+  hasPurchased = false,
   reviews = [],
 }) => {
+  const { data: session } = useSession();
+  const router = useRouter();
+
+  const handleGetItClick = async () => {
+    console.log('Get it clicked');
+    if (!session) {
+      console.log('No session, redirecting to login');
+      router.push('/auth/signin');
+      return;
+    }
+
+    try {
+      console.log('Creating purchase for:', { contentId: id, contentType });
+      const res = await fetch('/api/purchases', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          contentId: id,
+          contentType,
+        }),
+      });
+
+      if (!res.ok) {
+        const error = await res.text();
+        console.error('Purchase failed:', error);
+        throw new Error(`Failed to create purchase: ${error}`);
+      }
+
+      const purchase = await res.json();
+      console.log('Purchase created:', purchase);
+
+      // If onGetItClick is provided (for GoTo), call it
+      if (onGetItClick) {
+        console.log('Calling onGetItClick');
+        onGetItClick();
+      } else {
+        console.log('Redirecting to user page');
+        router.push('/user');
+      }
+    } catch (error) {
+      console.error('Error creating purchase:', error);
+      alert('Failed to process purchase. Please try again.');
+    }
+  };
+
   // Map of currency codes to symbols
   const currencySymbols: Record<string, string> = {
     USD: '$',
@@ -169,22 +220,20 @@ const AboutPageComponent: React.FC<AboutPageComponentProps> = ({
               <span className="absolute left-1/2 transform -translate-x-1/2 font-poppins font-bold italic text-text-color1 text-lg">
                 Inzider
               </span>
-              {onGetItClick ? (
+              {hasPurchased ? (
                 <button
                   onClick={onGetItClick}
+                  className="bg-green-500 py-2 px-4 text-white font-poppins rounded-md transition transform active:scale-95 active:shadow-none duration-200 whitespace-nowrap overflow-hidden text-ellipsis"
+                >
+                  View Content
+                </button>
+              ) : (
+                <button
+                  onClick={handleGetItClick}
                   className="bg-custom-purple py-2 px-4 text-white font-poppins rounded-md transition transform active:scale-95 active:shadow-none duration-200 whitespace-nowrap overflow-hidden text-ellipsis"
                 >
                   Get it!
                 </button>
-              ) : (
-                <Link
-                  href={`/${username}/${
-                    contentType === 'trip' ? 'trips' : 'gotos'
-                  }/${id}/purchase`}
-                  className="bg-custom-purple py-2 px-4 text-white font-poppins rounded-md transition transform active:scale-95 active:shadow-none duration-200 whitespace-nowrap overflow-hidden text-ellipsis"
-                >
-                  Get it!
-                </Link>
               )}
             </div>
           </div>

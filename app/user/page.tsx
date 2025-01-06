@@ -6,29 +6,29 @@ import Card from '@/components/Card';
 import UserNav from '@/components/UserNav';
 import Loader from '@/components/Loader';
 
-interface Trip {
-  _id: string;
-  title: string;
-  coverImage: string;
-  description: string;
-  country: string;
-  tag: string;
-  rating: number;
-}
-
-interface GoTo {
-  _id: string;
-  title: string;
-  coverImage: string;
-  description: string;
-  country: string;
-  tag: string;
-  rating: number;
-}
-
 interface PurchaseData {
-  trips: Trip[];
-  gotos: GoTo[];
+  trips: Array<{
+    _id: string;
+    title: string;
+    description: string;
+    slides: Array<{
+      type: 'image' | 'video';
+      src: string;
+    }>;
+    price: number;
+    currency: string;
+  }>;
+  gotos: Array<{
+    _id: string;
+    title: string;
+    description: string;
+    slides: Array<{
+      type: 'image' | 'video';
+      src: string;
+    }>;
+    price: number;
+    currency: string;
+  }>;
 }
 
 export default function UserDashboard() {
@@ -60,38 +60,50 @@ export default function UserDashboard() {
         <div className="space-y-8">
           <div>
             <h2 className="text-2xl font-semibold mb-4">My Trips</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {purchases?.trips?.map((trip) => (
-                <Card
-                  key={trip._id}
-                  title={trip.title}
-                  description={trip.description}
-                  imageUrl={trip.coverImage}
-                  country={trip.country}
-                  tag={trip.tag}
-                  stars={trip.rating}
-                  navigateTo={`/trips/${trip._id}`}
-                />
-              ))}
-            </div>
+            {purchases?.trips?.length === 0 ? (
+              <p className="text-gray-500">
+                You haven't purchased any trips yet.
+              </p>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {purchases?.trips?.map((trip) => (
+                  <Card
+                    key={trip._id}
+                    title={trip.title}
+                    description={trip.description}
+                    imageUrl={trip.slides?.[0]?.src}
+                    price={trip.price}
+                    currency={trip.currency}
+                    navigateTo={`/trips/${trip._id}`}
+                    mediaType={trip.slides?.[0]?.type || 'image'}
+                  />
+                ))}
+              </div>
+            )}
           </div>
 
           <div>
             <h2 className="text-2xl font-semibold mb-4">My GoTos</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {purchases?.gotos?.map((goto) => (
-                <Card
-                  key={goto._id}
-                  title={goto.title}
-                  description={goto.description}
-                  imageUrl={goto.coverImage}
-                  country={goto.country}
-                  tag={goto.tag}
-                  stars={goto.rating}
-                  navigateTo={`/gotos/${goto._id}`}
-                />
-              ))}
-            </div>
+            {purchases?.gotos?.length === 0 ? (
+              <p className="text-gray-500">
+                You haven't purchased any GoTos yet.
+              </p>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {purchases?.gotos?.map((goto) => (
+                  <Card
+                    key={goto._id}
+                    title={goto.title}
+                    description={goto.description}
+                    imageUrl={goto.slides?.[0]?.src}
+                    price={goto.price}
+                    currency={goto.currency}
+                    navigateTo={`/gotos/${goto._id}`}
+                    mediaType={goto.slides?.[0]?.type || 'image'}
+                  />
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </main>

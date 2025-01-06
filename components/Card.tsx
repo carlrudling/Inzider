@@ -7,10 +7,12 @@ interface CardProps {
   title: string;
   description: string;
   imageUrl: string;
-  country: string;
-  tag: string;
-  stars: number;
   navigateTo: string;
+  country?: string;
+  tag?: string;
+  stars?: number;
+  price?: number;
+  currency?: string;
   mediaType?: 'image' | 'video';
 }
 
@@ -21,6 +23,8 @@ const Card: React.FC<CardProps> = ({
   country,
   tag,
   stars,
+  price,
+  currency,
   navigateTo,
   mediaType = 'image',
 }) => {
@@ -123,24 +127,35 @@ const Card: React.FC<CardProps> = ({
             className="absolute inset-0 w-full h-full object-cover rounded-t-lg"
           />
         )}
-        <div className="absolute top-2 right-2">
-          <span className="bg-white px-2 py-1 rounded-full text-xs font-semibold">
-            {tag}
-          </span>
-        </div>
+        {tag && (
+          <div className="absolute top-2 right-2">
+            <span className="bg-white px-2 py-1 rounded-full text-xs font-semibold">
+              {tag}
+            </span>
+          </div>
+        )}
       </div>
 
       {/* Content section with flex layout */}
       <div className="p-3 h-36 flex flex-col">
         <div className="flex items-center justify-between mb-1">
           <h3 className="font-semibold text-lg truncate">{title}</h3>
-          <div className="flex items-center">
-            <FaStar className="text-yellow-400 w-4 h-4" />
-            <span className="ml-1 text-sm">{stars.toFixed(1)}</span>
-          </div>
+          {stars !== undefined && (
+            <div className="flex items-center">
+              <FaStar className="text-yellow-400 w-4 h-4" />
+              <span className="ml-1 text-sm">{stars.toFixed(1)}</span>
+            </div>
+          )}
         </div>
         <p className="text-gray-600 text-sm mb-1 line-clamp-2">{description}</p>
-        <p className="text-gray-500 text-xs mt-auto">{country}</p>
+        <div className="mt-auto flex justify-between items-center">
+          {country && <p className="text-gray-500 text-xs">{country}</p>}
+          {price !== undefined && currency && (
+            <p className="text-gray-700 font-semibold">
+              {currency} {price}
+            </p>
+          )}
+        </div>
       </div>
     </div>
   );

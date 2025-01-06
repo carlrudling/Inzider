@@ -1,5 +1,6 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
 import AboutPageComponent from '@/components/AboutPageComponent';
 import TripDayPage from '@/components/TripDayPage';
 
@@ -15,6 +16,37 @@ export default function TripPageContent({
   id,
 }: TripPageContentProps) {
   const [showDetails, setShowDetails] = useState(false);
+  const { data: session } = useSession();
+  const [hasPurchased, setHasPurchased] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const checkPurchase = async () => {
+      if (!session?.user?.id) {
+        setLoading(false);
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/purchases/user');
+        if (!res.ok) throw new Error('Failed to fetch purchases');
+
+        const data = await res.json();
+        const purchased = data.trips.some((trip: any) => trip._id === id);
+        setHasPurchased(purchased);
+      } catch (error) {
+        console.error('Error checking purchase:', error);
+      }
+
+      setLoading(false);
+    };
+
+    checkPurchase();
+  }, [session, id]);
+
+  if (loading) {
+    return <div>Loading...</div>;
+  }
 
   if (showDetails) {
     if (!initialData.days || initialData.days.length === 0) {
@@ -84,6 +116,7 @@ export default function TripPageContent({
         id={id}
         username={username}
         onGetItClick={() => setShowDetails(true)}
+        hasPurchased={hasPurchased}
       />
     </div>
   );

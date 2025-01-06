@@ -2,9 +2,9 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { NextResponse } from 'next/server';
 import dbConnect from '@/utils/database';
-import Purchase from '@/models/Purchase';
-import Trip from '@/models/Trip';
-import GoTo from '@/models/GoTo';
+import Purchase, { IPurchase } from '@/models/Purchase';
+import Trip, { ITrip } from '@/models/Trip';
+import GoTo, { IGoTo } from '@/models/GoTo';
 import { Types } from 'mongoose';
 
 export async function GET() {
@@ -46,16 +46,41 @@ export async function GET() {
     // Fetch the actual content
     const [trips, gotos] = await Promise.all([
       Trip.find({ _id: { $in: tripIds } }).select(
-        'title description slides slideTypes price currency'
-      ),
+        'title description slides price currency'
+      ) as Promise<ITrip[]>,
       GoTo.find({ _id: { $in: gotoIds } }).select(
-        'title description slides slideTypes price currency'
-      ),
+        'title description slides price currency'
+      ) as Promise<IGoTo[]>,
     ]);
 
+    // Map purchases to content to include purchase dates
+    const tripsWithPurchaseInfo = (
+      trips as (ITrip & { _id: Types.ObjectId })[]
+    ).map((trip) => {
+      const purchase = purchases.find(
+        (p) => p.contentId.toString() === trip._id.toString()
+      );
+      return {
+        ...trip.toObject(),
+        purchaseDate: purchase?.createdAt,
+      };
+    });
+
+    const gotosWithPurchaseInfo = (
+      gotos as (IGoTo & { _id: Types.ObjectId })[]
+    ).map((goto) => {
+      const purchase = purchases.find(
+        (p) => p.contentId.toString() === goto._id.toString()
+      );
+      return {
+        ...goto.toObject(),
+        purchaseDate: purchase?.createdAt,
+      };
+    });
+
     return NextResponse.json({
-      trips,
-      gotos,
+      trips: tripsWithPurchaseInfo,
+      gotos: gotosWithPurchaseInfo,
       purchaseCount: purchases.length,
     });
   } catch (error) {

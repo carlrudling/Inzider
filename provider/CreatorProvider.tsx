@@ -60,13 +60,10 @@ export const CreatorProvider = ({
       }
 
       try {
-        // First try to find by ID
-        let res = await fetch(`/api/creators/${session.user.id}`);
-
-        // If that fails, try to find by email
-        if (!res.ok) {
-          res = await fetch(`/api/creators/by-email/${session.user.email}`);
-        }
+        // Only fetch by email since that's the reliable identifier
+        const res = await fetch(
+          `/api/creators/by-email/${encodeURIComponent(session.user.email)}`
+        );
 
         if (!res.ok) {
           setError('Failed to fetch creator data');
