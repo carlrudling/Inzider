@@ -26,6 +26,7 @@ interface CreatorData {
   discountCode?: string; // Or reference a DiscountCode model
   myTrips: Schema.Types.ObjectId[];
   myGotos: Schema.Types.ObjectId[];
+  stripeAccountId?: string;
   createdAt?: Date;
   updatedAt?: Date;
 }

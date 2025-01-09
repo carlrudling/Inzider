@@ -1,55 +1,101 @@
-import { Schema, model, models, Document, Types } from 'mongoose';
+import { Schema, model, models, Document, Model } from 'mongoose';
+import bcrypt from 'bcryptjs';
 
 export interface ICreator extends Document {
-  _id: Types.ObjectId;
-  name: string;
   email: string;
-  username: string;
   password?: string;
-  image?: string;
+  username: string;
+  name: string;
   description?: string;
   instagram?: string;
-  tiktok?: string;
   xLink?: string;
+  tiktok?: string;
   youtube?: string;
-  profileImage?: string;
-  backgroundImage?: string;
-  textColor?: string;
-  tripButtonColor?: string;
-  tripButtonText?: string;
   buttonColor?: string;
   buttonTextColor?: string;
-  myTrips: Types.ObjectId[];
-  myGotos: Types.ObjectId[];
-  createdAt: Date;
-  updatedAt: Date;
+  textColor?: string;
+  backgroundImage?: string;
+  profileImage?: string;
+  stripeAccountId?: string;
 }
 
-const creatorSchema = new Schema<ICreator>(
+const CreatorSchema = new Schema<ICreator>(
   {
-    name: { type: String, required: true },
-    email: { type: String, required: true, unique: true },
-    username: { type: String, required: true, unique: true },
-    password: { type: String },
-    image: { type: String },
-    description: { type: String },
-    instagram: { type: String },
-    tiktok: { type: String },
-    xLink: { type: String },
-    youtube: { type: String },
-    profileImage: { type: String },
-    backgroundImage: { type: String },
-    textColor: { type: String },
-    tripButtonColor: { type: String },
-    tripButtonText: { type: String },
-    buttonColor: { type: String },
-    buttonTextColor: { type: String },
-    myTrips: [{ type: Schema.Types.ObjectId, ref: 'Trip' }],
-    myGotos: [{ type: Schema.Types.ObjectId, ref: 'GoTo' }],
+    email: {
+      type: String,
+      required: true,
+      unique: true,
+    },
+    password: {
+      type: String,
+      required: false,
+    },
+    username: {
+      type: String,
+      required: true,
+      unique: true,
+    },
+    name: {
+      type: String,
+      required: true,
+    },
+    description: {
+      type: String,
+      required: false,
+    },
+    instagram: {
+      type: String,
+      required: false,
+    },
+    xLink: {
+      type: String,
+      required: false,
+    },
+    tiktok: {
+      type: String,
+      required: false,
+    },
+    youtube: {
+      type: String,
+      required: false,
+    },
+    buttonColor: {
+      type: String,
+      required: false,
+    },
+    buttonTextColor: {
+      type: String,
+      required: false,
+    },
+    textColor: {
+      type: String,
+      required: false,
+    },
+    backgroundImage: {
+      type: String,
+      required: false,
+    },
+    profileImage: {
+      type: String,
+      required: false,
+    },
+    stripeAccountId: {
+      type: String,
+      required: false,
+    },
   },
-  {
-    timestamps: true,
-  }
+  { timestamps: true }
 );
 
-export default models.Creator || model<ICreator>('Creator', creatorSchema);
+// Hash password before saving
+CreatorSchema.pre('save', async function (next) {
+  if (this.isModified('password') && this.password) {
+    this.password = await bcrypt.hash(this.password, 10);
+  }
+  next();
+});
+
+const Creator: Model<ICreator> =
+  models.Creator || model<ICreator>('Creator', CreatorSchema);
+
+export default Creator;

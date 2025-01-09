@@ -8,7 +8,6 @@ import { BiStats } from 'react-icons/bi';
 import { IoPeople } from 'react-icons/io5';
 import Link from 'next/link';
 import { useCreatorData } from '../../provider/CreatorProvider';
-import LoadingPage from '../loading/page';
 import Card from '../../components/Card';
 import Loader from '@/components/Loader';
 
