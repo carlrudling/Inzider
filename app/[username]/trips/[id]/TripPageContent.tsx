@@ -115,7 +115,15 @@ export default function TripPageContent({
         contentType="trip"
         id={id}
         username={username}
-        onGetItClick={() => setShowDetails(true)}
+        onGetItClick={() => {
+          if (hasPurchased) {
+            console.log('Already purchased, showing details');
+            setShowDetails(true);
+          } else {
+            console.log('Not purchased, waiting for payment');
+            // Don't set showDetails here, wait for successful payment
+          }
+        }}
         hasPurchased={hasPurchased}
       />
     </div>
