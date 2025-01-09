@@ -28,11 +28,24 @@ export async function GET() {
 
     await dbConnect();
 
-    // Find all completed purchases for this user
+    // Find all completed purchases for this user and populate creator data
     const purchases = await Purchase.find({
       userId: new Types.ObjectId(session.user.id),
       status: 'completed',
+    }).populate({
+      path: 'creatorId',
+      model: 'Creator',
+      select: 'username',
     });
+
+    console.log(
+      'Purchases with creator data:',
+      purchases.map((p) => ({
+        contentId: p.contentId,
+        creatorId: p.creatorId,
+        creatorUsername: p.creatorId?.username,
+      }))
+    );
 
     // Separate trip and goto IDs
     const tripIds = purchases
@@ -53,16 +66,18 @@ export async function GET() {
       ) as Promise<IGoTo[]>,
     ]);
 
-    // Map purchases to content to include purchase dates
+    // Map purchases to content to include purchase dates and creator usernames
     const tripsWithPurchaseInfo = (
       trips as (ITrip & { _id: Types.ObjectId })[]
     ).map((trip) => {
       const purchase = purchases.find(
         (p) => p.contentId.toString() === trip._id.toString()
       );
+      const creator = purchase?.creatorId as any; // Using any to bypass TypeScript error
       return {
         ...trip.toObject(),
         purchaseDate: purchase?.createdAt,
+        creatorUsername: creator?.username || 'unknown',
       };
     });
 
@@ -72,9 +87,11 @@ export async function GET() {
       const purchase = purchases.find(
         (p) => p.contentId.toString() === goto._id.toString()
       );
+      const creator = purchase?.creatorId as any; // Using any to bypass TypeScript error
       return {
         ...goto.toObject(),
         purchaseDate: purchase?.createdAt,
+        creatorUsername: creator?.username || 'unknown',
       };
     });
 

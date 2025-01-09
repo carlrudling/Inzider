@@ -1,5 +1,5 @@
 'use client';
-import React from 'react';
+import React, { useState } from 'react';
 import { FaStar } from 'react-icons/fa';
 import Carousel from './Carousel';
 import ReviewsList from './ReviewsList';
@@ -8,6 +8,7 @@ import TextBlock from './TextBlock';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
+import PaymentFormWrapper from './PaymentForm';
 
 interface Slide {
   type: 'image' | 'video';
@@ -62,6 +63,8 @@ const AboutPageComponent: React.FC<AboutPageComponentProps> = ({
 }) => {
   const { data: session } = useSession();
   const router = useRouter();
+  const [showPayment, setShowPayment] = useState(false);
+  const [error, setError] = useState('');
 
   const handleGetItClick = async () => {
     console.log('Get it clicked');
@@ -71,40 +74,23 @@ const AboutPageComponent: React.FC<AboutPageComponentProps> = ({
       return;
     }
 
-    try {
-      console.log('Creating purchase for:', { contentId: id, contentType });
-      const res = await fetch('/api/purchases', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          contentId: id,
-          contentType,
-        }),
-      });
-
-      if (!res.ok) {
-        const error = await res.text();
-        console.error('Purchase failed:', error);
-        throw new Error(`Failed to create purchase: ${error}`);
-      }
-
-      const purchase = await res.json();
-      console.log('Purchase created:', purchase);
-
-      // If onGetItClick is provided (for GoTo), call it
-      if (onGetItClick) {
-        console.log('Calling onGetItClick');
-        onGetItClick();
-      } else {
-        console.log('Redirecting to user page');
-        router.push('/user');
-      }
-    } catch (error) {
-      console.error('Error creating purchase:', error);
-      alert('Failed to process purchase. Please try again.');
+    console.log('Setting showPayment to true');
+    setShowPayment(true);
+    if (onGetItClick) {
+      console.log('Calling onGetItClick');
+      onGetItClick();
     }
+  };
+
+  const handlePaymentSuccess = () => {
+    console.log('Payment successful');
+    router.push(`/payment/success?contentId=${id}&contentType=${contentType}`);
+  };
+
+  const handlePaymentError = (errorMessage: string) => {
+    console.error('Payment error:', errorMessage);
+    setError(errorMessage);
+    setShowPayment(false);
   };
 
   // Map of currency codes to symbols
@@ -213,6 +199,29 @@ const AboutPageComponent: React.FC<AboutPageComponentProps> = ({
               <div className="flex justify-center mt-2 w-full px-4">
                 <ReviewsList reviews={reviews} />
               </div>
+            )}
+
+            {/* Payment Form */}
+            {showPayment && (
+              <div className="fixed inset-0 z-50">
+                <div
+                  className="absolute inset-0 bg-black bg-opacity-50"
+                  onClick={() => setShowPayment(false)}
+                />
+                <div className="relative z-10">
+                  <PaymentFormWrapper
+                    contentId={id}
+                    contentType={contentType}
+                    onSuccess={handlePaymentSuccess}
+                    onError={handlePaymentError}
+                  />
+                </div>
+              </div>
+            )}
+
+            {/* Error Message */}
+            {error && (
+              <div className="mt-4 px-4 text-red-600 text-sm">{error}</div>
             )}
 
             {/* Button and Logo */}

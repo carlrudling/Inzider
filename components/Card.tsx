@@ -70,6 +70,10 @@ const Card: React.FC<CardProps> = ({
     // If we're in the creator's public view, use the public route
     if (pathname.startsWith('/dashboard')) {
       router.push(navigateTo);
+    } else if (pathname.startsWith('/user')) {
+      // For the user dashboard, use the navigateTo path directly
+      // as it already contains the full path with username
+      router.push(navigateTo);
     } else {
       // Extract username from current path
       const username = pathname.split('/')[1];

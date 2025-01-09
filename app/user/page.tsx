@@ -17,6 +17,7 @@ interface PurchaseData {
     }>;
     price: number;
     currency: string;
+    creatorUsername: string;
   }>;
   gotos: Array<{
     _id: string;
@@ -28,6 +29,7 @@ interface PurchaseData {
     }>;
     price: number;
     currency: string;
+    creatorUsername: string;
   }>;
 }
 
@@ -74,7 +76,7 @@ export default function UserDashboard() {
                     imageUrl={trip.slides?.[0]?.src}
                     price={trip.price}
                     currency={trip.currency}
-                    navigateTo={`/trips/${trip._id}`}
+                    navigateTo={`/${trip.creatorUsername}/trips/${trip._id}`}
                     mediaType={trip.slides?.[0]?.type || 'image'}
                   />
                 ))}
@@ -98,7 +100,7 @@ export default function UserDashboard() {
                     imageUrl={goto.slides?.[0]?.src}
                     price={goto.price}
                     currency={goto.currency}
-                    navigateTo={`/gotos/${goto._id}`}
+                    navigateTo={`/${goto.creatorUsername}/gotos/${goto._id}`}
                     mediaType={goto.slides?.[0]?.type || 'image'}
                   />
                 ))}

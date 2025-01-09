@@ -3,10 +3,14 @@ import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { NextResponse } from 'next/server';
 import dbConnect from '@/utils/database';
 import Purchase from '@/models/Purchase';
-import GoTo, { IGoTo } from '@/models/GoTo';
-import Trip, { ITrip } from '@/models/Trip';
+import GoTo from '@/models/GoTo';
+import Trip from '@/models/Trip';
 import { Types } from 'mongoose';
-import { randomUUID } from 'crypto';
+import Stripe from 'stripe';
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+  apiVersion: '2024-12-18.acacia',
+});
 
 export async function POST(req: Request) {
   try {
@@ -19,10 +23,10 @@ export async function POST(req: Request) {
       return new NextResponse('Unauthorized', { status: 401 });
     }
 
-    const { contentId, contentType } = await req.json();
-    console.log('Request body:', { contentId, contentType });
+    const { contentId, contentType, stripePaymentId } = await req.json();
+    console.log('Request body:', { contentId, contentType, stripePaymentId });
 
-    if (!contentId || !contentType) {
+    if (!contentId || !contentType || !stripePaymentId) {
       console.log('Missing required fields');
       return new NextResponse('Missing required fields', { status: 400 });
     }
@@ -30,8 +34,39 @@ export async function POST(req: Request) {
     await dbConnect();
     console.log('Connected to database');
 
+    // Verify the payment with Stripe
+    const paymentIntent = await stripe.paymentIntents.retrieve(stripePaymentId);
+    console.log('Payment intent details:', {
+      id: paymentIntent.id,
+      status: paymentIntent.status,
+      metadata: paymentIntent.metadata,
+      amount: paymentIntent.amount,
+      currency: paymentIntent.currency,
+    });
+
+    if (paymentIntent.status !== 'succeeded') {
+      console.log('Payment not successful');
+      return new NextResponse('Payment not successful', { status: 400 });
+    }
+
+    // Verify the payment details match
+    const metadata = paymentIntent.metadata as {
+      contentId: string;
+      contentType: string;
+      userId: string;
+    };
+
+    if (
+      metadata.contentId !== contentId ||
+      metadata.contentType !== contentType ||
+      metadata.userId !== session.user.id
+    ) {
+      console.log('Payment details mismatch');
+      return new NextResponse('Payment verification failed', { status: 400 });
+    }
+
     // Find the content (Trip or GoTo)
-    let content: (ITrip | IGoTo) | null = null;
+    let content;
     if (contentType === 'trip') {
       content = await Trip.findById(contentId).lean();
     } else {
@@ -44,10 +79,7 @@ export async function POST(req: Request) {
       return new NextResponse('Content not found', { status: 404 });
     }
 
-    // Generate a unique ID for this purchase
-    const uniqueId = `manual_${randomUUID()}`;
-
-    // For now, we'll create a completed purchase without Stripe
+    // Create the purchase record
     const purchase = new Purchase({
       userId: new Types.ObjectId(session.user.id),
       contentId: new Types.ObjectId(contentId),
@@ -57,7 +89,7 @@ export async function POST(req: Request) {
       creatorId: content.creatorId,
       creatorAmount: content.price * 0.8, // 80% to creator
       platformAmount: content.price * 0.2, // 20% to platform
-      stripePaymentId: uniqueId, // Use the unique ID
+      stripePaymentId,
       status: 'completed',
     });
     console.log('Created purchase object:', purchase);
@@ -88,6 +120,13 @@ export async function POST(req: Request) {
     return NextResponse.json(purchase, { status: 201 });
   } catch (error) {
     console.error('Error creating purchase:', error);
+    if (error instanceof Error) {
+      console.error('Error details:', {
+        message: error.message,
+        stack: error.stack,
+        name: error.name,
+      });
+    }
     return new NextResponse('Internal Server Error', { status: 500 });
   }
 }
