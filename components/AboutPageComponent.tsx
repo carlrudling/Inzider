@@ -221,7 +221,28 @@ const AboutPageComponent: React.FC<AboutPageComponentProps> = ({
 
             {/* Error Message */}
             {error && (
-              <div className="mt-4 px-4 text-red-600 text-sm">{error}</div>
+              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                <div className="bg-white p-6 rounded-lg shadow-xl max-w-md w-full mx-4">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-semibold text-red-600">
+                      Payment Failed
+                    </h3>
+                    <button
+                      onClick={() => setError('')}
+                      className="text-gray-500 hover:text-gray-700"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                  <p className="text-gray-700 mb-4">{error}</p>
+                  <button
+                    onClick={() => setError('')}
+                    className="w-full bg-gray-100 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-200"
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
             )}
 
             {/* Button and Logo */}

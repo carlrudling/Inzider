@@ -7,6 +7,11 @@ import Trip, { ITrip } from '@/models/Trip';
 import GoTo, { IGoTo } from '@/models/GoTo';
 import { Types } from 'mongoose';
 
+interface PopulatedCreator {
+  _id: Types.ObjectId;
+  username: string;
+}
+
 export async function GET() {
   try {
     const session = await getServerSession(authOptions);
@@ -32,11 +37,9 @@ export async function GET() {
     const purchases = await Purchase.find({
       userId: new Types.ObjectId(session.user.id),
       status: 'completed',
-    }).populate({
-      path: 'creatorId',
-      model: 'Creator',
-      select: 'username',
-    });
+    })
+      .populate<{ creatorId: PopulatedCreator }>('creatorId', 'username')
+      .lean();
 
     console.log(
       'Purchases with creator data:',
