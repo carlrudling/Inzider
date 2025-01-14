@@ -22,6 +22,74 @@ const SettingsPage = () => {
   const searchParams = useSearchParams();
   const error = searchParams.get('error');
 
+  // Add new state for refund form
+  const [refundForm, setRefundForm] = useState({
+    buyerEmail: '',
+    contentType: '',
+    contentTitle: '',
+    reason: '',
+  });
+  const [refundStatus, setRefundStatus] = useState<{
+    type: 'success' | 'error' | null;
+    message: string;
+  }>({ type: null, message: '' });
+  const [isProcessing, setIsProcessing] = useState(false);
+
+  // Handle refund form input changes
+  const handleRefundInputChange = (
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >
+  ) => {
+    const { id, value } = e.target;
+    setRefundForm((prev) => ({
+      ...prev,
+      [id]: value,
+    }));
+  };
+
+  // Handle refund form submission
+  const handleRefundSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsProcessing(true);
+    setRefundStatus({ type: null, message: '' });
+
+    try {
+      const response = await fetch('/api/refunds', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(refundForm),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to process refund');
+      }
+
+      setRefundStatus({
+        type: 'success',
+        message: 'Refund processed successfully',
+      });
+      setRefundForm({
+        buyerEmail: '',
+        contentType: '',
+        contentTitle: '',
+        reason: '',
+      });
+    } catch (error) {
+      setRefundStatus({
+        type: 'error',
+        message:
+          error instanceof Error ? error.message : 'Failed to process refund',
+      });
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex h-screen bg-gray-100 items-center justify-center">
@@ -166,37 +234,139 @@ const SettingsPage = () => {
               </div>
 
               {creatorData.stripeAccountId && (
-                <div className="mt-6 bg-white p-6 rounded-lg shadow-sm border border-gray-200">
-                  <h2 className="text-lg font-semibold mb-4">
-                    Payment History
-                  </h2>
-                  <div className="space-y-4">
-                    <div className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
-                      <div>
-                        <p className="font-medium">Total Earnings</p>
-                        <p className="text-sm text-gray-500">All time</p>
+                <>
+                  <div className="mt-6 bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+                    <h2 className="text-lg font-semibold mb-4">
+                      Payment History
+                    </h2>
+                    <div className="space-y-4">
+                      <div className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
+                        <div>
+                          <p className="font-medium">Total Earnings</p>
+                          <p className="text-sm text-gray-500">All time</p>
+                        </div>
+                        <p className="text-lg font-semibold">$0.00</p>
                       </div>
-                      <p className="text-lg font-semibold">$0.00</p>
+                      <div className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
+                        <div>
+                          <p className="font-medium">Pending Transfers</p>
+                          <p className="text-sm text-gray-500">Processing</p>
+                        </div>
+                        <p className="text-lg font-semibold">$0.00</p>
+                      </div>
                     </div>
-                    <div className="flex justify-between items-center p-4 bg-gray-50 rounded-lg">
-                      <div>
-                        <p className="font-medium">Pending Transfers</p>
-                        <p className="text-sm text-gray-500">Processing</p>
-                      </div>
-                      <p className="text-lg font-semibold">$0.00</p>
+                    <div className="mt-4">
+                      <a
+                        href="https://dashboard.stripe.com"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                      >
+                        View full payment history →
+                      </a>
                     </div>
                   </div>
-                  <div className="mt-4">
-                    <a
-                      href="https://dashboard.stripe.com"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue-600 hover:text-blue-800 text-sm font-medium"
-                    >
-                      View full payment history →
-                    </a>
+
+                  <div className="mt-6 bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+                    <h2 className="text-lg font-semibold mb-4">Issue Refund</h2>
+                    <p className="text-gray-600 mb-4">
+                      Process refunds for your customers. Enter the buyer's
+                      email and the content details below.
+                    </p>
+
+                    {refundStatus.type && (
+                      <div
+                        className={`mb-4 p-4 rounded-md ${
+                          refundStatus.type === 'success'
+                            ? 'bg-green-50 text-green-800'
+                            : 'bg-red-50 text-red-800'
+                        }`}
+                      >
+                        {refundStatus.message}
+                      </div>
+                    )}
+
+                    <form onSubmit={handleRefundSubmit} className="space-y-4">
+                      <div>
+                        <label
+                          htmlFor="buyerEmail"
+                          className="block text-sm font-medium text-gray-700 mb-1"
+                        >
+                          Buyer's Email
+                        </label>
+                        <input
+                          type="email"
+                          id="buyerEmail"
+                          value={refundForm.buyerEmail}
+                          onChange={handleRefundInputChange}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+                          placeholder="Enter buyer's email"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label
+                          htmlFor="contentType"
+                          className="block text-sm font-medium text-gray-700 mb-1"
+                        >
+                          Content Type
+                        </label>
+                        <select
+                          id="contentType"
+                          value={refundForm.contentType}
+                          onChange={handleRefundInputChange}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+                          required
+                        >
+                          <option value="">Select content type</option>
+                          <option value="goto">GoTo</option>
+                          <option value="trip">Trip</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label
+                          htmlFor="contentTitle"
+                          className="block text-sm font-medium text-gray-700 mb-1"
+                        >
+                          Content Title
+                        </label>
+                        <input
+                          type="text"
+                          id="contentTitle"
+                          value={refundForm.contentTitle}
+                          onChange={handleRefundInputChange}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+                          placeholder="Enter content title"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label
+                          htmlFor="reason"
+                          className="block text-sm font-medium text-gray-700 mb-1"
+                        >
+                          Reason for Refund
+                        </label>
+                        <textarea
+                          id="reason"
+                          value={refundForm.reason}
+                          onChange={handleRefundInputChange}
+                          rows={3}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
+                          placeholder="Enter reason for refund"
+                          required
+                        />
+                      </div>
+                      <button
+                        type="submit"
+                        disabled={isProcessing}
+                        className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:bg-blue-300 disabled:cursor-not-allowed"
+                      >
+                        {isProcessing ? 'Processing...' : 'Process Refund'}
+                      </button>
+                    </form>
                   </div>
-                </div>
+                </>
               )}
             </div>
           </>
