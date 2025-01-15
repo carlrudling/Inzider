@@ -1,5 +1,5 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { CgProfile } from 'react-icons/cg';
 import { LuLink } from 'react-icons/lu';
 import { FaMoneyCheck } from 'react-icons/fa';
@@ -35,6 +35,21 @@ const SettingsPage = () => {
   }>({ type: null, message: '' });
   const [isProcessing, setIsProcessing] = useState(false);
 
+  // Add new state for refund history
+  const [refundHistory, setRefundHistory] = useState<
+    Array<{
+      id: string;
+      buyerEmail: string;
+      contentTitle: string;
+      contentType: string;
+      amount: number;
+      currency: string;
+      reason: string;
+      refundedAt: string;
+    }>
+  >([]);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+
   // Handle refund form input changes
   const handleRefundInputChange = (
     e: React.ChangeEvent<
@@ -60,18 +75,62 @@ const SettingsPage = () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(refundForm),
+        body: JSON.stringify({
+          buyerEmail: refundForm.buyerEmail,
+          contentType: refundForm.contentType,
+          contentTitle: refundForm.contentTitle,
+          reason: refundForm.reason,
+        }),
       });
 
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || 'Failed to process refund');
+        let errorMessage = 'Failed to process refund';
+
+        // Provide specific error messages based on the response status
+        switch (response.status) {
+          case 404:
+            if (data.error === 'Buyer not found') {
+              errorMessage = `No user found with email ${refundForm.buyerEmail}`;
+            } else if (data.error === 'Content not found') {
+              errorMessage = `No ${refundForm.contentType} found with title "${refundForm.contentTitle}"`;
+            } else if (
+              data.error === 'No completed purchase found for this content'
+            ) {
+              errorMessage = `No completed purchase found for ${refundForm.contentTitle} by ${refundForm.buyerEmail}. The purchase might be pending, already refunded, or was a manual payment.`;
+            }
+            break;
+          case 403:
+            errorMessage = 'You are not authorized to refund this purchase';
+            break;
+          case 400:
+            if (data.error === 'Cannot refund manual purchases') {
+              errorMessage =
+                'Manual purchases cannot be refunded through the system';
+            } else if (data.error?.includes('reason')) {
+              errorMessage = 'Please provide a reason for the refund';
+            }
+            break;
+          case 401:
+            errorMessage =
+              'You must be logged in as a creator to process refunds';
+            break;
+          case 500:
+            errorMessage =
+              data.error ||
+              'An unexpected error occurred while processing the refund';
+            break;
+        }
+
+        throw new Error(errorMessage);
       }
 
+      // Success case
       setRefundStatus({
         type: 'success',
-        message: 'Refund processed successfully',
+        message:
+          'Refund processed successfully! The refund will appear in the history below.',
       });
       setRefundForm({
         buyerEmail: '',
@@ -79,6 +138,8 @@ const SettingsPage = () => {
         contentTitle: '',
         reason: '',
       });
+      // Refresh the refund history
+      fetchRefundHistory();
     } catch (error) {
       setRefundStatus({
         type: 'error',
@@ -89,6 +150,26 @@ const SettingsPage = () => {
       setIsProcessing(false);
     }
   };
+
+  // Fetch refund history
+  const fetchRefundHistory = async () => {
+    setIsLoadingHistory(true);
+    try {
+      const response = await fetch('/api/refunds');
+      if (!response.ok) throw new Error('Failed to fetch refund history');
+      const data = await response.json();
+      setRefundHistory(data);
+    } catch (error) {
+      console.error('Error fetching refund history:', error);
+    } finally {
+      setIsLoadingHistory(false);
+    }
+  };
+
+  // Fetch refund history on component mount
+  useEffect(() => {
+    fetchRefundHistory();
+  }, []);
 
   if (loading) {
     return (
@@ -365,6 +446,64 @@ const SettingsPage = () => {
                         {isProcessing ? 'Processing...' : 'Process Refund'}
                       </button>
                     </form>
+                  </div>
+
+                  <div className="mt-8">
+                    <h2 className="text-xl font-semibold mb-4">
+                      Refund History
+                    </h2>
+                    {isLoadingHistory ? (
+                      <p>Loading refund history...</p>
+                    ) : refundHistory.length === 0 ? (
+                      <p>No refunds processed yet.</p>
+                    ) : (
+                      <div className="overflow-x-auto">
+                        <table className="min-w-full divide-y divide-gray-200">
+                          <thead className="bg-gray-50">
+                            <tr>
+                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Date
+                              </th>
+                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Buyer
+                              </th>
+                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Content
+                              </th>
+                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Amount
+                              </th>
+                              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                Reason
+                              </th>
+                            </tr>
+                          </thead>
+                          <tbody className="bg-white divide-y divide-gray-200">
+                            {refundHistory.map((refund) => (
+                              <tr key={refund.id}>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                  {new Date(
+                                    refund.refundedAt
+                                  ).toLocaleDateString()}
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                  {refund.buyerEmail}
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                  {refund.contentTitle} ({refund.contentType})
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                  {refund.amount} {refund.currency}
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                  {refund.reason}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
                   </div>
                 </>
               )}

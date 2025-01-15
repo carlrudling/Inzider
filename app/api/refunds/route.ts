@@ -1,3 +1,9 @@
+declare const process: {
+  env: {
+    STRIPE_SECRET_KEY: string;
+  };
+};
+
 import { NextResponse } from 'next/server';
 import { headers } from 'next/headers';
 import { getServerSession } from 'next-auth';
@@ -10,6 +16,8 @@ import Trip from '@/models/Trip';
 import Stripe from 'stripe';
 import config from '@/config';
 import { Document, Model, Types } from 'mongoose';
+import Refund from '@/models/Refund';
+import mongoose from 'mongoose';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2024-12-18.acacia',
@@ -33,6 +41,11 @@ interface IPurchase {
   __v: number;
 }
 
+interface IContent {
+  _id: Types.ObjectId;
+  title: string;
+}
+
 export async function POST(req: Request) {
   try {
     await dbConnect();
@@ -42,13 +55,24 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { buyerEmail, contentType, contentTitle, refundReason } =
-      await req.json();
-    console.log('Refund request:', {
+    const body = await req.json();
+    console.log('Received refund request body:', body);
+
+    const { buyerEmail, contentType, contentTitle, reason } = body;
+
+    if (!reason) {
+      return NextResponse.json(
+        { error: 'A reason for the refund is required' },
+        { status: 400 }
+      );
+    }
+
+    // Log the extracted values
+    console.log('Extracted refund data:', {
       buyerEmail,
       contentType,
       contentTitle,
-      refundReason,
+      reason,
     });
 
     // Find the buyer by email
@@ -164,7 +188,7 @@ export async function POST(req: Request) {
     }
 
     // Process refund through Stripe
-    const refund = await stripe.refunds.create({
+    const stripeRefund = await stripe.refunds.create({
       payment_intent: stripePaymentId,
       reason: 'requested_by_customer',
     });
@@ -174,16 +198,125 @@ export async function POST(req: Request) {
       purchase._id,
       {
         status: 'refunded',
-        refundReason: refundReason,
+        refundReason: reason,
+        refundedAt: new Date(),
       },
       { new: true }
     );
 
+    // Save refund record
+    const refund = new Refund({
+      purchaseId: purchase._id,
+      buyer: buyer._id,
+      contentId: content._id,
+      contentType: contentType.toLowerCase(),
+      creatorId: session.user.id,
+      amount: purchase.amount,
+      currency: purchase.currency,
+      reason: reason || 'No reason provided',
+      stripeRefundId: stripeRefund.id,
+      status: 'completed',
+      processedBy: session.user.id,
+    });
+
+    // Log the refund data before saving
+    console.log('Creating refund with data:', {
+      purchaseId: purchase._id,
+      buyerEmail: buyer.email,
+      contentTitle: content.title,
+      amount: purchase.amount,
+      reason,
+    });
+
+    try {
+      await refund.save();
+    } catch (err) {
+      console.error('Error saving refund:', err);
+      if (
+        err &&
+        typeof err === 'object' &&
+        'name' in err &&
+        err.name === 'ValidationError' &&
+        'errors' in err
+      ) {
+        const validationError = err as {
+          errors: { [key: string]: { message: string } };
+        };
+        return NextResponse.json(
+          {
+            error:
+              'Invalid refund data: ' +
+              Object.values(validationError.errors)
+                .map((e) => e.message)
+                .join(', '),
+          },
+          { status: 400 }
+        );
+      }
+      throw err;
+    }
+
     return NextResponse.json({ message: 'Refund processed successfully' });
+  } catch (err) {
+    console.error('Refund error:', err);
+    const errorMessage =
+      err instanceof Error ? err.message : 'Failed to process refund';
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
+  }
+}
+
+export async function GET(req: Request) {
+  try {
+    await dbConnect();
+    const session = await getServerSession(authOptions);
+
+    if (!session?.user?.id || session.user.type !== 'creator') {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Find all refunds for this creator
+    const refunds = await Refund.find({ creatorId: session.user.id })
+      .populate('buyer', 'email')
+      .sort({ createdAt: -1 })
+      .lean();
+
+    // Format the refunds for the response
+    const formattedRefunds = await Promise.all(
+      refunds.map(async (refund) => {
+        let contentTitle = 'Content not found';
+
+        try {
+          // Use mongoose's model() function to get the model dynamically
+          const modelName = refund.contentType === 'goto' ? 'GoTo' : 'Trip';
+          const doc = await mongoose
+            .model(modelName)
+            .findById(refund.contentId, 'title')
+            .lean();
+          if (doc && 'title' in doc) {
+            contentTitle = doc.title;
+          }
+        } catch (err) {
+          console.error('Error fetching content:', err);
+        }
+
+        return {
+          id: refund._id,
+          buyerEmail: refund.buyer.email,
+          contentTitle,
+          contentType: refund.contentType,
+          amount: refund.amount,
+          currency: refund.currency,
+          reason: refund.reason,
+          refundedAt: refund.createdAt,
+        };
+      })
+    );
+
+    return NextResponse.json(formattedRefunds);
   } catch (error) {
-    console.error('Refund error:', error);
+    console.error('Error fetching refunds:', error);
     return NextResponse.json(
-      { error: 'Failed to process refund' },
+      { error: 'Failed to fetch refunds' },
       { status: 500 }
     );
   }

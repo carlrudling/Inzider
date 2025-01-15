@@ -1,19 +1,45 @@
-import mongoose from 'mongoose';
+import mongoose, { Schema, Document, Types } from 'mongoose';
 
-const refundSchema = new mongoose.Schema(
+export interface IRefund extends Document {
+  purchaseId: Types.ObjectId;
+  buyer: Types.ObjectId;
+  contentId: Types.ObjectId;
+  contentType: string;
+  creatorId: Types.ObjectId;
+  amount: number;
+  currency: string;
+  reason: string;
+  stripeRefundId: string;
+  status: 'pending' | 'completed' | 'failed';
+  processedBy: Types.ObjectId; // The creator who processed the refund
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+const refundSchema = new Schema(
   {
     purchaseId: {
-      type: mongoose.Schema.Types.ObjectId,
+      type: Schema.Types.ObjectId,
       ref: 'Purchase',
       required: true,
     },
-    creatorId: {
-      type: mongoose.Schema.Types.ObjectId,
+    buyer: {
+      type: Schema.Types.ObjectId,
       ref: 'User',
       required: true,
     },
-    buyerId: {
-      type: mongoose.Schema.Types.ObjectId,
+    contentId: {
+      type: Schema.Types.ObjectId,
+      required: true,
+      refPath: 'contentType',
+    },
+    contentType: {
+      type: String,
+      required: true,
+      enum: ['goto', 'trip'],
+    },
+    creatorId: {
+      type: Schema.Types.ObjectId,
       ref: 'User',
       required: true,
     },
@@ -29,17 +55,23 @@ const refundSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    stripeRefundId: {
+      type: String,
+      required: true,
+    },
     status: {
       type: String,
       enum: ['pending', 'completed', 'failed'],
-      default: 'pending',
+      default: 'completed',
     },
-    stripeRefundId: {
-      type: String,
+    processedBy: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
       required: true,
     },
   },
   { timestamps: true }
 );
 
-export default mongoose.models.Refund || mongoose.model('Refund', refundSchema);
+export default mongoose.models.Refund ||
+  mongoose.model<IRefund>('Refund', refundSchema);

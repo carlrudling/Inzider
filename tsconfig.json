@@ -7,15 +7,14 @@
     "noEmit": true,
     "esModuleInterop": true,
     "module": "esnext",
-    "moduleResolution": "node", // Ensures compatibility with more environments
+    "moduleResolution": "node",
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "jsx": "preserve", // Updated for React 17+ JSX transformation
+    "jsx": "preserve",
     "incremental": true,
     "paths": {
       "@/*": ["./*"]
     },
-    "types": ["@types/node", "@types/react"], // Adds necessary types for React and Node.js
     "plugins": [
       {
         "name": "next"

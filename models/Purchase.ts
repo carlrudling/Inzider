@@ -14,6 +14,7 @@ export interface IPurchase extends mongoose.Document {
   refundReason?: string;
   createdAt: Date;
   updatedAt: Date;
+  refundedAt: Date;
 }
 
 const purchaseSchema = new mongoose.Schema(
@@ -53,6 +54,10 @@ const purchaseSchema = new mongoose.Schema(
     },
     refundReason: {
       type: String,
+      required: false,
+    },
+    refundedAt: {
+      type: Date,
       required: false,
     },
   },
