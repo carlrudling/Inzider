@@ -81,5 +81,8 @@ const TripSchema = new Schema<ITrip>(
   { timestamps: true }
 );
 
+// Add compound index for unique title per creator
+TripSchema.index({ title: 1, creatorId: 1 }, { unique: true });
+
 const Trip: Model<ITrip> = models.Trip || model<ITrip>('Trip', TripSchema);
 export default Trip;

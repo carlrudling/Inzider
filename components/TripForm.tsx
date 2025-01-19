@@ -12,45 +12,15 @@ import { RxCrossCircled } from 'react-icons/rx';
 import { useCreatorData } from '../provider/CreatorProvider';
 import SlideItem from './SlideItem';
 import { useRouter } from 'next/navigation';
-
-interface Spot {
-  title: string;
-  location: string;
-  description: string;
-  specifics: { label: string; value: string }[];
-  slides: File[];
-}
-
-interface Day {
-  date: Date;
-  spots: Spot[];
-}
+import { TripData, Day, Spot, Slide, Specific } from '@/types/trip';
 
 interface TripFormProps {
-  initialData?: {
-    id?: string;
-    title?: string;
-    price?: string;
-    currency?: string;
-    description?: string;
-    slides?: Array<File | { src: string; type: 'image' | 'video' }>;
-    specifics?: { label: string; value: string }[];
-    days?: {
-      date: Date;
-      spots: {
-        title: string;
-        location: string;
-        description: string;
-        specifics: { label: string; value: string }[];
-        slides: Array<File | { src: string; type: 'image' | 'video' }>;
-      }[];
-    }[];
-    status?: 'edit' | 'launch';
-    startDate?: Date;
-    endDate?: Date;
-  };
+  initialData?: TripData;
   isEditing: boolean;
-  onSave: (data: any, status: 'edit' | 'launch') => Promise<void>;
+  onSave: (
+    data: TripData,
+    status: 'edit' | 'launch'
+  ) => Promise<boolean | void>;
 }
 
 const TripForm: React.FC<TripFormProps> = ({
@@ -70,26 +40,15 @@ const TripForm: React.FC<TripFormProps> = ({
   const [creatorWords, setCreatorWords] = useState('');
   const [status, setStatus] = useState<'edit' | 'launch' | ''>('');
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
-  const [specifics, setSpecifics] = useState([{ label: '', value: '' }]);
-  const [slides, setSlides] = useState<
-    (File | { src: string; type: 'image' | 'video' })[]
-  >([]);
+  const [specifics, setSpecifics] = useState<Specific[]>([
+    { label: '', value: '' },
+  ]);
+  const [slides, setSlides] = useState<(File | Slide)[]>([]);
 
   // Trip-specific states
   const [startDate, setStartDate] = useState<Date | undefined>(undefined);
   const [endDate, setEndDate] = useState<Date | undefined>(undefined);
-  const [days, setDays] = useState<
-    {
-      date: Date;
-      spots: {
-        title: string;
-        location: string;
-        description: string;
-        specifics: { label: string; value: string }[];
-        slides: (File | { src: string; type: 'image' | 'video' })[];
-      }[];
-    }[]
-  >([]);
+  const [days, setDays] = useState<Day[]>([]);
   const [activeDayIndex, setActiveDayIndex] = useState(0);
   const [activeSpotIndex, setActiveSpotIndex] = useState(0);
   const currentDay = days[activeDayIndex] || { date: new Date(), spots: [] };
@@ -102,10 +61,18 @@ const TripForm: React.FC<TripFormProps> = ({
       setCurrency(initialData.currency || 'USD');
       setCreatorWords(initialData.description || '');
       setSlides(
-        initialData.slides?.map((slide, index) => ({
-          ...slide,
-          order: index,
-        })) || []
+        (initialData.slides
+          ?.map((slide: any) => {
+            if (!slide) return null;
+            if (slide instanceof File) {
+              return slide;
+            }
+            return {
+              src: slide.src || '',
+              type: slide.type || 'image',
+            };
+          })
+          .filter(Boolean) || []) as (File | Slide)[]
       );
       setSpecifics(initialData.specifics || [{ label: '', value: '' }]);
 
@@ -114,14 +81,23 @@ const TripForm: React.FC<TripFormProps> = ({
       if (initialData.endDate) setEndDate(new Date(initialData.endDate));
 
       setDays(
-        initialData.days?.map((day) => ({
+        initialData.days?.map((day: any) => ({
           date: new Date(day.date),
-          spots: day.spots.map((spot) => ({
+          spots: day.spots.map((spot: any) => ({
             ...spot,
-            slides: spot.slides?.map((slide, index) => ({
-              ...slide,
-              order: index,
-            })),
+            slides:
+              spot.slides
+                ?.map((slide: any) => {
+                  if (!slide) return null;
+                  if (slide instanceof File) {
+                    return slide;
+                  }
+                  return {
+                    src: slide.src || '',
+                    type: slide.type || 'image',
+                  };
+                })
+                .filter(Boolean) || [],
           })),
         })) || []
       );
@@ -132,9 +108,11 @@ const TripForm: React.FC<TripFormProps> = ({
     }
   }, [initialData]);
 
-  const currentDayWeekday = currentDay.date.toLocaleDateString(undefined, {
-    weekday: 'long', // This will give the full weekday name (e.g., "Monday")
-  });
+  const currentDayWeekday = currentDay?.date
+    ? currentDay.date.toLocaleDateString(undefined, {
+        weekday: 'long', // This will give the full weekday name (e.g., "Monday")
+      })
+    : 'No Date';
 
   const showAboutPageFieldsOnly = () => {
     setShowAboutPageFields(true);
@@ -143,6 +121,12 @@ const TripForm: React.FC<TripFormProps> = ({
   const showTripSpotsFieldsOnly = () => {
     setShowAboutPageFields(false);
     setShowTripSpotsFields(true);
+
+    // Initialize days array if empty
+    if (days.length === 0 && startDate && endDate) {
+      const newDays = generateDaysArray(startDate, endDate);
+      setDays(newDays);
+    }
 
     // Ensure that a spot exists for the current day
     if (days.length > 0) {
@@ -153,6 +137,12 @@ const TripForm: React.FC<TripFormProps> = ({
         updatedDays[activeDayIndex] = { date: new Date(), spots: [] };
       }
 
+      // Ensure spots array exists
+      if (!updatedDays[activeDayIndex].spots) {
+        updatedDays[activeDayIndex].spots = [];
+      }
+
+      // Add an empty spot if none exist
       if (updatedDays[activeDayIndex].spots.length === 0) {
         updatedDays[activeDayIndex].spots.push({
           title: '',
@@ -484,37 +474,58 @@ const TripForm: React.FC<TripFormProps> = ({
   }, [startDate, endDate]);
 
   const uploadFile = async (file: File) => {
+    console.log(
+      'Starting file upload:',
+      file.name,
+      `(${(file.size / (1024 * 1024)).toFixed(2)}MB)`
+    );
     const formData = new FormData();
     formData.append('file', file);
 
-    const res = await fetch('/api/uploads', {
-      method: 'POST',
-      body: formData,
-    });
+    try {
+      const res = await fetch('/api/uploads', {
+        method: 'POST',
+        body: formData,
+      });
 
-    if (!res.ok) {
-      console.error('Upload failed');
-      return null;
+      if (!res.ok) {
+        const errorText = await res.text();
+        console.error('Upload failed:', errorText);
+        throw new Error(`Upload failed: ${errorText}`);
+      }
+
+      const data = await res.json();
+      console.log('Upload successful:', data);
+      return data.fileUrl as string;
+    } catch (error) {
+      console.error('Error uploading file:', file.name, error);
+      throw error;
     }
-
-    const { fileUrl } = await res.json();
-    return fileUrl as string;
   };
 
   const uploadAllFiles = async (
     files: Array<File | { src: string; type: 'image' | 'video' }>
-  ) => {
+  ): Promise<Slide[]> => {
     const uploadedFiles = await Promise.all(
       files.map(async (file) => {
         if (file instanceof File) {
           // Handle new file upload
-          return uploadFile(file);
+          const fileUrl = await uploadFile(file);
+          if (!fileUrl) return null;
+          return {
+            src: fileUrl,
+            type: file.type.startsWith('image') ? 'image' : 'video',
+          };
         }
-        // Return existing file data
-        return file;
+        // Return existing file data in the correct format
+        return {
+          src: file.src,
+          type: file.type,
+        };
       })
     );
-    return uploadedFiles;
+    // Filter out any failed uploads and ensure correct typing
+    return uploadedFiles.filter((file): file is Slide => file !== null);
   };
 
   // ADD THE HANDLE SAVE HERE BUT FOR TRIP
@@ -530,12 +541,30 @@ const TripForm: React.FC<TripFormProps> = ({
     }
 
     try {
-      const uploadedSlides = await uploadAllFiles(slides);
+      // Filter out empty slides before uploading
+      const validSlides = slides.filter(
+        (slide) => slide instanceof File || (slide.src && slide.type)
+      );
+
+      // Only proceed with upload if there are valid slides
+      const uploadedSlides =
+        validSlides.length > 0 ? await uploadAllFiles(validSlides) : [];
+
       const updatedDays = await Promise.all(
         days.map(async (day) => {
           const updatedSpots = await Promise.all(
             day.spots.map(async (spot) => {
-              const uploadedSpotSlides = await uploadAllFiles(spot.slides);
+              // Filter out empty slides in spots
+              const validSpotSlides = spot.slides.filter(
+                (slide) => slide instanceof File || (slide.src && slide.type)
+              );
+
+              // Only proceed with upload if there are valid slides
+              const uploadedSpotSlides =
+                validSpotSlides.length > 0
+                  ? await uploadAllFiles(validSpotSlides)
+                  : [];
+
               return {
                 ...spot,
                 slides: uploadedSpotSlides,
@@ -546,11 +575,11 @@ const TripForm: React.FC<TripFormProps> = ({
         })
       );
 
-      const tripData = {
-        creatorId: creatorData._id,
+      const tripData: TripData = {
+        id: initialData?.id || '',
         title,
         description: creatorWords,
-        price: parseFloat(price) || 0,
+        price,
         currency,
         specifics,
         slides: uploadedSlides,
@@ -560,21 +589,22 @@ const TripForm: React.FC<TripFormProps> = ({
         endDate,
       };
 
-      await onSave(tripData, status);
-      // Update local status after successful save
-      setStatus(status);
+      const success = await onSave(tripData, status);
+      if (success) {
+        setStatus(status);
+      }
     } catch (error) {
       console.error('Error saving trip:', error);
       alert('Failed to save trip');
     }
   };
 
-  const handleSaveChanges = () => {
-    handleSave('edit');
+  const handleSaveChanges = async () => {
+    await handleSave('edit');
   };
 
-  const handleLaunch = () => {
-    handleSave('launch');
+  const handleLaunch = async () => {
+    await handleSave('launch');
   };
 
   // Add delete handler

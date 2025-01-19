@@ -3,7 +3,7 @@ import dbConnect from '@/utils/database';
 import Trip from '@/models/Trip';
 
 export async function GET(
-  _req: Request,
+  request: Request,
   { params }: { params: { id: string } }
 ) {
   try {
@@ -12,9 +12,9 @@ export async function GET(
     if (!trip) {
       return new NextResponse('Not Found', { status: 404 });
     }
-    return NextResponse.json(trip, { status: 200 });
-  } catch (error: any) {
-    console.error(error);
+    return NextResponse.json(trip);
+  } catch (error) {
+    console.error('Error fetching trip:', error);
     return new NextResponse('Internal Server Error', { status: 500 });
   }
 }
@@ -41,14 +41,12 @@ export async function PUT(
     // Format the main slides
     const formattedSlides = data.slides?.map((slide: any) => {
       if (typeof slide === 'string') {
-        // If it's a string URL, check if it ends with common video extensions
         const isVideo = /\.(mp4|webm|ogg|mov)$/i.test(slide);
         return {
           type: isVideo ? 'video' : 'image',
           src: slide,
         };
       }
-      // If it's an object, use its type or detect from src if type is missing
       return {
         type:
           slide.type ||
@@ -70,14 +68,12 @@ export async function PUT(
         })),
         slides: spot.slides?.map((slide: any) => {
           if (typeof slide === 'string') {
-            // If it's a string URL, check if it ends with common video extensions
             const isVideo = /\.(mp4|webm|ogg|mov)$/i.test(slide);
             return {
               type: isVideo ? 'video' : 'image',
               src: slide,
             };
           }
-          // If it's an object, use its type or detect from src if type is missing
           return {
             type:
               slide.type ||
@@ -113,6 +109,12 @@ export async function PUT(
     return NextResponse.json(updatedTrip, { status: 200 });
   } catch (error: any) {
     console.error('Error during PUT request:', error);
+    if (error.code === 11000) {
+      return new NextResponse(
+        'You already have a trip with this title. Please choose a different title.',
+        { status: 409 }
+      );
+    }
     return new NextResponse('Internal Server Error', { status: 500 });
   }
 }

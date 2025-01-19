@@ -39,9 +39,15 @@ export default function UserDashboard() {
   const { data: purchases, isLoading } = useQuery<PurchaseData>({
     queryKey: ['purchases'],
     queryFn: async () => {
+      console.log('Fetching purchases...');
       const res = await fetch('/api/purchases/user');
-      if (!res.ok) throw new Error('Failed to fetch purchases');
-      return res.json();
+      if (!res.ok) {
+        console.error('Failed to fetch purchases:', await res.text());
+        throw new Error('Failed to fetch purchases');
+      }
+      const data = await res.json();
+      console.log('Received purchases data:', data);
+      return data;
     },
   });
 
@@ -53,6 +59,8 @@ export default function UserDashboard() {
     return <Loader />;
   }
 
+  console.log('Rendering with purchases:', purchases);
+
   return (
     <div className="min-h-screen bg-gray-100">
       <UserNav />
@@ -62,13 +70,13 @@ export default function UserDashboard() {
         <div className="space-y-8">
           <div>
             <h2 className="text-2xl font-semibold mb-4">My Trips</h2>
-            {purchases?.trips?.length === 0 ? (
+            {!purchases?.trips || purchases.trips.length === 0 ? (
               <p className="text-gray-500">
                 You haven't purchased any trips yet.
               </p>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {purchases?.trips?.map((trip) => (
+                {purchases.trips.map((trip) => (
                   <Card
                     key={trip._id}
                     title={trip.title}
@@ -86,13 +94,13 @@ export default function UserDashboard() {
 
           <div>
             <h2 className="text-2xl font-semibold mb-4">My GoTos</h2>
-            {purchases?.gotos?.length === 0 ? (
+            {!purchases?.gotos || purchases.gotos.length === 0 ? (
               <p className="text-gray-500">
                 You haven't purchased any GoTos yet.
               </p>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {purchases?.gotos?.map((goto) => (
+                {purchases.gotos.map((goto) => (
                   <Card
                     key={goto._id}
                     title={goto.title}

@@ -25,7 +25,8 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 
 interface IPurchase {
   _id: Types.ObjectId;
-  userId: Types.ObjectId;
+  buyer: Types.ObjectId;
+  userId?: Types.ObjectId;
   contentId: Types.ObjectId;
   contentType: string;
   status: string;
@@ -112,25 +113,36 @@ export async function POST(req: Request) {
 
     // Log the query parameters we're using to find the purchase
     const purchaseQuery = {
-      userId: buyer._id,
       contentId: content._id,
       contentType: contentType.toLowerCase(),
       status: 'completed',
       stripePaymentId: { $not: /^manual_/ },
     };
-    console.log('Purchase query:', purchaseQuery);
+    console.log('Looking for purchase with:', {
+      contentId: content._id.toString(),
+      contentType: contentType.toLowerCase(),
+      buyerEmail,
+    });
 
-    // Find all purchases for this user to debug
-    const allUserPurchases = await Purchase.find({ userId: buyer._id });
+    // Find all purchases in the system to debug
+    const allPurchases = await Purchase.find();
     console.log(
-      'All user purchases:',
-      allUserPurchases.map((p) => ({
-        id: p._id,
-        contentId: p.contentId,
-        contentType: p.contentType,
-        status: p.status,
-        stripePaymentId: p.stripePaymentId,
-      }))
+      'All matching purchases:',
+      allPurchases
+        .filter(
+          (p) =>
+            p.contentType === contentType.toLowerCase() &&
+            p.status === 'completed' &&
+            !p.stripePaymentId.startsWith('manual_')
+        )
+        .map((p) => ({
+          id: p._id,
+          contentId: p.contentId.toString(),
+          contentType: p.contentType,
+          status: p.status,
+          stripePaymentId: p.stripePaymentId,
+          userId: p.userId?.toString(),
+        }))
     );
 
     // Find the specific purchase
@@ -146,16 +158,25 @@ export async function POST(req: Request) {
       );
     }
 
+    // Update the purchase to include the buyer information if it's missing
+    if (!purchase.buyer && !purchase.userId) {
+      await Purchase.findByIdAndUpdate(purchase._id, {
+        buyer: buyer._id,
+      });
+      purchase.buyer = buyer._id;
+    }
+
     // Now check if this purchase belongs to our buyer
+    const purchaseBuyerId = purchase.buyer || purchase.userId;
     console.log(
-      'Comparing purchase.userId:',
-      purchase.userId.toString(),
+      'Comparing purchase buyer/userId:',
+      purchaseBuyerId?.toString(),
       'with buyer._id:',
       buyer._id.toString()
     );
     if (
-      !purchase.userId ||
-      purchase.userId.toString() !== buyer._id.toString()
+      !purchaseBuyerId ||
+      purchaseBuyerId.toString() !== buyer._id.toString()
     ) {
       return NextResponse.json(
         { error: 'This purchase does not belong to the specified buyer' },

@@ -1,27 +1,41 @@
 'use client';
 import React from 'react';
 import TripForm from '@/components/TripForm';
+import { useRouter } from 'next/navigation';
+import { useCreatorData } from '@/provider/CreatorProvider';
 
-const CreateGoToPage = () => {
-  const handleSave = async (data: any, status: 'edit' | 'launch') => {
-    const response = await fetch('/api/trips', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
-    });
+const CreateTripPage = () => {
+  const router = useRouter();
+  const { creatorData } = useCreatorData();
 
-    const result = await response.json(); // Parse the response body
-    console.log(result); // Log the error or response for debugging
+  if (!creatorData) {
+    return <div>Loading creator data...</div>;
+  }
 
-    if (!response.ok) {
-      console.error('Error creating Trip:', result);
-      alert('Error creating Trip');
-    } else {
-      alert('Trip created successfully!');
-    }
-  };
+  return (
+    <TripForm
+      isEditing={false}
+      onSave={async (data, status) => {
+        const response = await fetch('/api/trips', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ ...data, creatorId: creatorData._id }),
+        });
 
-  return <TripForm isEditing={false} onSave={handleSave} />;
+        const result = await response.text();
+        console.log('Server response:', result);
+        if (!response.ok) {
+          console.error('Error creating Trip:', result);
+          alert(result || 'Error creating Trip');
+          return false;
+        } else {
+          alert('Trip created successfully!');
+          router.push('/dashboard');
+          return true;
+        }
+      }}
+    />
+  );
 };
 
-export default CreateGoToPage;
+export default CreateTripPage;

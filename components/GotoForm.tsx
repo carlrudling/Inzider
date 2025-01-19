@@ -22,18 +22,18 @@ interface Spot {
 
 interface GoToFormProps {
   initialData?: {
-    id?: string;
+    id: string;
     title?: string;
     price?: string;
     currency?: string;
     description?: string;
-    slides?: File[];
+    slides?: Array<File | { src: string; type: 'image' | 'video' }>;
     specifics?: { label: string; value: string }[];
     spots?: Spot[];
-    status?: 'edit' | 'launch'; // Add this line
+    status?: 'edit' | 'launch';
   };
   isEditing: boolean;
-  onSave: (data: any, status: 'edit' | 'launch') => Promise<void>;
+  onSave: (data: any, status: 'edit' | 'launch') => Promise<boolean | void>;
 }
 
 const GoToForm: React.FC<GoToFormProps> = ({
@@ -74,19 +74,34 @@ const GoToForm: React.FC<GoToFormProps> = ({
       setCurrency(initialData.currency || 'USD');
       setCreatorWords(initialData.description || '');
       setSlides(
-        initialData.slides?.map((slide, index) => ({
-          ...slide,
-          order: index, // Ensure order property is added
-        })) || []
+        initialData.slides?.map((slide) => {
+          if (slide instanceof File) {
+            return {
+              src: URL.createObjectURL(slide),
+              type: slide.type.startsWith('image')
+                ? 'image'
+                : ('video' as const),
+            };
+          }
+          return slide as { src: string; type: 'image' | 'video' };
+        }) || []
       );
       setSpecifics(initialData.specifics || [{ label: '', value: '' }]);
       setSpots(
         initialData.spots?.map((spot) => ({
           ...spot,
-          slides: spot.slides?.map((slide, index) => ({
-            ...slide,
-            order: index, // Ensure order property for spots
-          })),
+          slides:
+            spot.slides?.map((slide) => {
+              if (slide instanceof File) {
+                return {
+                  src: URL.createObjectURL(slide),
+                  type: slide.type.startsWith('image')
+                    ? 'image'
+                    : ('video' as const),
+                };
+              }
+              return slide as { src: string; type: 'image' | 'video' };
+            }) || [],
         })) || []
       );
 

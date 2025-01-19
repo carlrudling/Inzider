@@ -28,55 +28,157 @@ export async function GET() {
 
     await dbConnect();
 
-    // Find all completed purchases for this user
-    const purchases = await Purchase.find({
-      userId: new Types.ObjectId(session.user.id),
-      status: 'completed',
+    // Find all purchases for this user to debug
+    const allPurchases = await Purchase.find({
+      buyer: new Types.ObjectId(session.user.id),
     });
+    console.log(
+      'All user purchases:',
+      allPurchases.map((p) => ({
+        id: p._id,
+        contentType: p.contentType,
+        status: p.status,
+        refundedAt: p.refundedAt,
+      }))
+    );
+
+    // Find all non-refunded purchases for this user
+    const purchases = await Purchase.find({
+      buyer: new Types.ObjectId(session.user.id),
+      status: { $ne: 'refunded' },
+    }).lean();
+
+    console.log(
+      'Filtered purchases:',
+      purchases.map((p) => ({
+        id: p._id,
+        contentId: p.contentId,
+        contentType: p.contentType,
+        status: p.status,
+      }))
+    );
 
     // Separate trip and goto IDs
-    const tripIds = purchases
-      .filter((p) => p.contentType === 'trip')
-      .map((p) => p.contentId);
+    const tripPurchases = purchases.filter((p) => p.contentType === 'trip');
+    const gotoPurchases = purchases.filter((p) => p.contentType === 'goto');
 
-    const gotoIds = purchases
-      .filter((p) => p.contentType === 'goto')
-      .map((p) => p.contentId);
+    const tripIds = tripPurchases.map((p) => p.contentId);
+    const gotoIds = gotoPurchases.map((p) => p.contentId);
+
+    console.log(
+      'Trip purchases:',
+      tripPurchases.map((p) => ({
+        purchaseId: p._id,
+        contentId: p.contentId,
+        status: p.status,
+      }))
+    );
+    console.log(
+      'GoTo purchases:',
+      gotoPurchases.map((p) => ({
+        purchaseId: p._id,
+        contentId: p.contentId,
+        status: p.status,
+      }))
+    );
 
     // Fetch the actual content
     const [trips, gotos] = await Promise.all([
-      Trip.find({ _id: { $in: tripIds } }).select(
-        'title description slides price currency'
-      ) as Promise<ITrip[]>,
-      GoTo.find({ _id: { $in: gotoIds } }).select(
-        'title description slides price currency'
-      ) as Promise<IGoTo[]>,
+      Trip.find({
+        _id: { $in: tripIds },
+      }).select('title description slides price currency') as Promise<ITrip[]>,
+      GoTo.find({
+        _id: { $in: gotoIds },
+      }).select('title description slides price currency') as Promise<IGoTo[]>,
     ]);
 
-    // Map purchases to content to include purchase dates
-    const tripsWithPurchaseInfo = (
-      trips as (ITrip & { _id: Types.ObjectId })[]
-    ).map((trip) => {
-      const purchase = purchases.find(
-        (p) => p.contentId.toString() === trip._id.toString()
-      );
-      return {
-        ...trip.toObject(),
-        purchaseDate: purchase?.createdAt,
-      };
-    });
+    console.log(
+      'Found trips:',
+      trips.map((t) => t._id)
+    );
+    console.log(
+      'Found gotos:',
+      gotos.map((g) => g._id)
+    );
 
-    const gotosWithPurchaseInfo = (
-      gotos as (IGoTo & { _id: Types.ObjectId })[]
-    ).map((goto) => {
-      const purchase = purchases.find(
-        (p) => p.contentId.toString() === goto._id.toString()
-      );
-      return {
-        ...goto.toObject(),
-        purchaseDate: purchase?.createdAt,
-      };
-    });
+    // Map purchases to content to include purchase dates
+    const tripsWithPurchaseInfo = (trips as (ITrip & { _id: Types.ObjectId })[])
+      .filter((trip) => {
+        // Only include trips that have a non-refunded purchase
+        const purchase = tripPurchases.find(
+          (p) => p.contentId.toString() === trip._id.toString()
+        );
+        console.log('Trip filtering:', {
+          tripId: trip._id,
+          purchase: purchase
+            ? {
+                id: purchase._id,
+                status: purchase.status,
+                contentId: purchase.contentId,
+              }
+            : 'No purchase found',
+        });
+        return purchase && purchase.status === 'completed';
+      })
+      .map((trip) => {
+        const purchase = tripPurchases.find(
+          (p) => p.contentId.toString() === trip._id.toString()
+        );
+        return {
+          ...trip.toObject(),
+          purchaseDate: purchase?.createdAt,
+          purchaseId: purchase?._id, // Adding purchase ID for tracking
+          purchaseStatus: purchase?.status, // Adding status for verification
+        };
+      });
+
+    const gotosWithPurchaseInfo = (gotos as (IGoTo & { _id: Types.ObjectId })[])
+      .filter((goto) => {
+        // Only include gotos that have a non-refunded purchase
+        const purchase = gotoPurchases.find(
+          (p) => p.contentId.toString() === goto._id.toString()
+        );
+        console.log('Goto filtering:', {
+          gotoId: goto._id,
+          purchase: purchase
+            ? {
+                id: purchase._id,
+                status: purchase.status,
+                contentId: purchase.contentId,
+              }
+            : 'No purchase found',
+        });
+        return purchase && purchase.status === 'completed';
+      })
+      .map((goto) => {
+        const purchase = gotoPurchases.find(
+          (p) => p.contentId.toString() === goto._id.toString()
+        );
+        return {
+          ...goto.toObject(),
+          purchaseDate: purchase?.createdAt,
+          purchaseId: purchase?._id, // Adding purchase ID for tracking
+          purchaseStatus: purchase?.status, // Adding status for verification
+        };
+      });
+
+    console.log(
+      'Final trips to return:',
+      tripsWithPurchaseInfo.map((t) => ({
+        id: t._id,
+        purchaseId: t.purchaseId,
+        purchaseStatus: t.purchaseStatus,
+      }))
+    );
+
+    console.log(
+      'Final gotos to return:',
+      gotosWithPurchaseInfo.map((g) => ({
+        id: g._id,
+        purchaseId: g.purchaseId,
+        purchaseStatus: g.purchaseStatus,
+      }))
+    );
 
     return NextResponse.json({
       trips: tripsWithPurchaseInfo,

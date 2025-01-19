@@ -1,37 +1,14 @@
 'use client';
 import React, { useEffect, useState } from 'react';
 import TripForm from '@/components/TripForm';
+import { useRouter, useParams } from 'next/navigation';
+import { TripData } from '@/types/trip';
 
-interface Day {
-  date: Date;
-  spots: {
-    title: string;
-    location: string;
-    description: string;
-    specifics: { label: string; value: string }[];
-    slides: Array<File | { src: string; type: 'image' | 'video' }>;
-  }[];
-}
-
-const EditTripPage = ({ params }: { params: { id: string } }) => {
-  const { id } = params;
-  const [initialData, setInitialData] = useState<
-    | {
-        id: string;
-        title?: string;
-        price?: string;
-        currency?: string;
-        description?: string;
-        slides?: Array<File | { src: string; type: 'image' | 'video' }>;
-        specifics?: { label: string; value: string }[];
-        days?: Day[];
-        startDate?: Date;
-        endDate?: Date;
-        status?: 'edit' | 'launch';
-      }
-    | undefined
-  >(undefined);
-
+const EditTripPage = () => {
+  const params = useParams();
+  const id = params?.id as string;
+  const router = useRouter();
+  const [initialData, setInitialData] = useState<TripData | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -80,14 +57,18 @@ const EditTripPage = ({ params }: { params: { id: string } }) => {
         const response = await fetch(`/api/trips/${id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(data),
+          body: JSON.stringify({ ...data, id }),
         });
 
         if (!response.ok) {
           console.error('Failed to update Trip');
-          alert('Error updating Trip');
+          const errorText = await response.text();
+          alert(errorText || 'Error updating Trip');
+          return false;
         } else {
           alert('Trip updated successfully!');
+          router.push('/dashboard');
+          return true;
         }
       }}
     />

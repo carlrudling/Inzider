@@ -88,13 +88,22 @@ export async function PUT(
         ...data,
         slides: updatedSlides, // Replace slides with updated ones
       },
-      { new: true }
+      { new: true, runValidators: true }
     );
 
     console.log('Updated GoTo:', updatedGoTo);
     return NextResponse.json(updatedGoTo, { status: 200 });
   } catch (error: any) {
     console.error('Error during PUT request:', error);
+
+    // Check for duplicate key error (code 11000)
+    if (error.code === 11000) {
+      return new NextResponse(
+        'You already have a GoTo with this title. Please choose a different title.',
+        { status: 409 }
+      );
+    }
+
     return new NextResponse('Internal Server Error', { status: 500 });
   }
 }

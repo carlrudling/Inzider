@@ -69,6 +69,13 @@ const SlideItem: React.FC<SlideItemProps> = ({
 
   drag(drop(ref));
 
+  const getProxiedUrl = (url: string) => {
+    // Extract the key from the R2 URL
+    const key = url.split('/').pop();
+    if (!key) return url;
+    return `/api/media/${key}`;
+  };
+
   const renderMedia = () => {
     if (file instanceof File) {
       // For newly uploaded files
@@ -116,7 +123,8 @@ const SlideItem: React.FC<SlideItemProps> = ({
           <div className="relative w-full h-full">
             <video
               ref={videoRef}
-              src={file.src}
+              src={getProxiedUrl(file.src)}
+              crossOrigin="anonymous"
               className="rounded-md w-full h-full object-cover"
               onLoadedMetadata={(e) =>
                 handleVideoLoad(e.target as HTMLVideoElement)

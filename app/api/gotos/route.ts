@@ -44,6 +44,15 @@ export async function POST(req: Request) {
     return NextResponse.json(newGoTo, { status: 201 });
   } catch (error: any) {
     console.error(error);
+
+    // Check for duplicate key error (code 11000)
+    if (error.code === 11000) {
+      return new NextResponse(
+        'You already have a GoTo with this title. Please choose a different title.',
+        { status: 409 }
+      );
+    }
+
     return new NextResponse('Internal Server Error', { status: 500 });
   }
 }

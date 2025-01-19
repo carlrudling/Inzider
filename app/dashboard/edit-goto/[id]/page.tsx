@@ -1,6 +1,7 @@
 'use client';
 import React, { useEffect, useState } from 'react';
 import GoToForm from '@/components/GotoForm';
+import { useParams } from 'next/navigation';
 
 interface Spot {
   title: string;
@@ -10,8 +11,9 @@ interface Spot {
   slides: File[];
 }
 
-const EditGoToPage = ({ params }: { params: { id: string } }) => {
-  const { id } = params;
+const EditGoToPage = () => {
+  const params = useParams();
+  const id = params?.id as string;
   const [initialData, setInitialData] = useState<
     | {
         id: string;
@@ -66,9 +68,17 @@ const EditGoToPage = ({ params }: { params: { id: string } }) => {
 
         if (!response.ok) {
           console.error('Failed to update GoTo');
-          alert('Error updating GoTo');
+          if (response.status === 409) {
+            alert(
+              'You already have a GoTo with this title. Please choose a different title.'
+            );
+          } else {
+            alert('Error updating GoTo');
+          }
+          return false; // Return false to indicate save failed
         } else {
           alert('GoTo updated successfully!');
+          return true; // Return true to indicate save succeeded
         }
       }}
     />

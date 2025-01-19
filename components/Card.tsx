@@ -46,24 +46,37 @@ const Card: React.FC<CardProps> = ({
     const canvas = document.createElement('canvas');
     canvas.width = videoElement.videoWidth;
     canvas.height = videoElement.videoHeight;
-    canvas
-      .getContext('2d')
-      ?.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
+    const ctx = canvas.getContext('2d');
 
     try {
-      const thumbnailUrl = canvas.toDataURL('image/jpeg');
-      setThumbnailUrl(thumbnailUrl);
+      if (ctx) {
+        ctx.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
+        const thumbnailUrl = canvas.toDataURL('image/jpeg');
+        setThumbnailUrl(thumbnailUrl);
+      }
     } catch (error) {
       console.error('Error generating thumbnail:', error);
+      // Fallback to a default thumbnail or handle the error gracefully
     }
   };
 
   const handleVideoLoad = (video: HTMLVideoElement) => {
-    // Set the current time to 1 second to skip potential black frames at the start
-    video.currentTime = 1;
-    video.addEventListener('seeked', () => generateThumbnail(video), {
-      once: true,
-    });
+    // Make sure video is loaded enough to seek
+    if (video.readyState >= 2) {
+      // Set to 1 second or 25% of duration, whichever is less
+      const seekTime = Math.min(1, video.duration * 0.25);
+      video.currentTime = seekTime;
+    } else {
+      // If video is not loaded enough, wait for loadeddata event
+      video.addEventListener(
+        'loadeddata',
+        () => {
+          const seekTime = Math.min(1, video.duration * 0.25);
+          video.currentTime = seekTime;
+        },
+        { once: true }
+      );
+    }
   };
 
   const handleClick = () => {
@@ -92,6 +105,13 @@ const Card: React.FC<CardProps> = ({
     }
   };
 
+  const getProxiedUrl = (url: string) => {
+    // Extract the key from the R2 URL
+    const key = url.split('/').pop();
+    if (!key) return url;
+    return `/api/media/${key}`;
+  };
+
   return (
     <div
       onClick={handleClick}
@@ -103,12 +123,15 @@ const Card: React.FC<CardProps> = ({
           <>
             <video
               ref={videoRef}
-              src={imageUrl}
+              src={getProxiedUrl(imageUrl)}
+              crossOrigin="anonymous"
               className="absolute inset-0 w-full h-full object-cover rounded-t-lg"
               onLoadedMetadata={(e) =>
                 handleVideoLoad(e.target as HTMLVideoElement)
               }
+              onSeeked={(e) => generateThumbnail(e.target as HTMLVideoElement)}
               muted
+              preload="metadata"
               style={{ display: thumbnailUrl ? 'none' : 'block' }}
             />
             {thumbnailUrl && (

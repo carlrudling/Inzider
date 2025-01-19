@@ -16,7 +16,7 @@ if (
   throw new Error('Missing R2 configuration');
 }
 
-const r2Client = new S3Client({
+const client = new S3Client({
   region: 'auto',
   endpoint: CLOUDFLARE_R2_ENDPOINT,
   credentials: {
@@ -24,6 +24,26 @@ const r2Client = new S3Client({
     secretAccessKey: CLOUDFLARE_R2_SECRET_ACCESS_KEY,
   },
   forcePathStyle: true,
+  requestChecksumCalculation: 'WHEN_REQUIRED',
 });
 
-export { r2Client, CLOUDFLARE_R2_BUCKET };
+client.middlewareStack.add(
+  (next) => async (args) => {
+    if (args.request && typeof args.request === 'object') {
+      const request = args.request as { headers?: Record<string, string> };
+      if (request.headers) {
+        delete request.headers['x-amz-checksum-mode'];
+        delete request.headers['x-amz-checksum-crc32'];
+        request.headers['x-amz-checksum-algorithm'] = 'CRC32';
+      }
+    }
+    return next(args);
+  },
+  {
+    step: 'build',
+    name: 'customHeaders',
+  }
+);
+
+export const r2Client = client;
+export { CLOUDFLARE_R2_BUCKET };

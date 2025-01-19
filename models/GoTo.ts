@@ -77,5 +77,8 @@ const GoToSchema = new Schema<IGoTo>(
   { timestamps: true }
 );
 
+// Add compound index for unique title per creator
+GoToSchema.index({ title: 1, creatorId: 1 }, { unique: true });
+
 const GoTo: Model<IGoTo> = models.GoTo || model<IGoTo>('GoTo', GoToSchema);
 export default GoTo;

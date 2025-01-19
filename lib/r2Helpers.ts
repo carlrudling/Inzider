@@ -6,21 +6,28 @@ export async function uploadFileToR2(
   fileBuffer: Buffer,
   contentType: string
 ) {
-  const command = new PutObjectCommand({
-    Bucket: CLOUDFLARE_R2_BUCKET,
-    Key: key,
-    Body: fileBuffer,
-    ContentType: contentType,
-  });
+  try {
+    console.log(`Starting upload for file: ${key}`);
 
-  await r2Client.send(command);
+    const command = new PutObjectCommand({
+      Bucket: CLOUDFLARE_R2_BUCKET,
+      Key: key,
+      Body: fileBuffer,
+      ContentType: contentType,
+    });
 
-  // Use the public R2.dev URL from environment variables
-  // Make sure CLOUDFLARE_R2_PUBLIC_URL is set in your .env
-  return `${process.env.CLOUDFLARE_R2_PUBLIC_URL}/${key}`;
+    await r2Client.send(command);
+
+    // Return the public R2 URL
+    const publicUrl = `${process.env.CLOUDFLARE_R2_PUBLIC_URL}/${key}`;
+    console.log(`Upload successful. Public URL: ${publicUrl}`);
+    return publicUrl;
+  } catch (error) {
+    console.error('Error uploading to R2:', error);
+    throw error;
+  }
 }
 
-// Delete file from R2
 export async function deleteFileFromR2(key: string) {
   const command = new DeleteObjectCommand({
     Bucket: CLOUDFLARE_R2_BUCKET,
@@ -28,7 +35,6 @@ export async function deleteFileFromR2(key: string) {
   });
 
   await r2Client.send(command);
-
   return {
     success: true,
     message: `File with key ${key} deleted successfully`,
