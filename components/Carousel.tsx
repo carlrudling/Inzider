@@ -54,7 +54,7 @@ const Carousel = ({ slides }: { slides: Slide[] }) => {
     <>
       {/* Normal Carousel */}
       <div
-        className="overflow-hidden relative rounded-lg shadow-lg max-w-full mx-auto"
+        className="overflow-hidden relative rounded-lg shadow-lg w-full"
         onMouseDown={handleMouseDown}
         onMouseUp={handleMouseUp}
         onMouseMove={handleMouseMove}
@@ -63,28 +63,29 @@ const Carousel = ({ slides }: { slides: Slide[] }) => {
         onTouchMove={handleMouseMove}
       >
         <div
-          className="flex transition-transform ease-out duration-500 gap-4"
+          className="flex transition-transform ease-out duration-500"
           style={{
-            transform: `translateX(calc(-${curr * 100}% - ${curr * 16}px))`, // Adjust for gap between images/videos (16px)
+            transform: `translateX(-${curr * 100}%)`,
           }}
         >
           {slides.map((slide, index) => (
             <div
               key={index}
-              className="relative min-w-full h-72 sm:h-80 md:h-96 object-cover rounded-lg flex items-center justify-center"
+              className="w-full flex-shrink-0"
+              style={{ aspectRatio: '16/16' }}
               onClick={handleFullScreen}
             >
               {slide.type === 'image' ? (
                 <img
                   src={slide.src}
                   alt=""
-                  className="h-full w-full object-cover rounded-lg cursor-pointer"
+                  className="w-full h-full object-cover"
                 />
               ) : (
                 <div className="relative w-full h-full">
                   <video
                     src={slide.src}
-                    className="h-full w-full object-cover rounded-lg cursor-pointer"
+                    className="w-full h-full object-cover"
                     muted
                   />
                   {/* Play icon overlay */}
@@ -129,14 +130,16 @@ const Carousel = ({ slides }: { slides: Slide[] }) => {
               <img
                 src={slides[curr].src}
                 alt=""
-                className="w-full h-full object-cover"
+                className="w-full h-full object-contain"
+                style={{ maxWidth: '100%', maxHeight: '100vh', margin: 'auto' }}
               />
             ) : (
               <video
                 src={slides[curr].src}
                 controls
                 autoPlay
-                className="w-full h-full object-cover"
+                className="w-full h-full object-contain"
+                style={{ maxWidth: '100%', maxHeight: '100vh', margin: 'auto' }}
               />
             )}
 
