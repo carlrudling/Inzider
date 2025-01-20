@@ -33,7 +33,7 @@ export async function POST(req: Request) {
     await dbConnect();
 
     const data = await req.json();
-    console.log('Received Data:', data); // Add this to inspect the request body
+    console.log('Received Data:', data);
 
     // Validate the required fields
     const requiredFields = [
@@ -52,6 +52,19 @@ export async function POST(req: Request) {
       );
     }
 
+    // Check for existing trip with same title for this creator
+    const existingTrip = await Trip.findOne({
+      creatorId: data.creatorId,
+      title: data.title,
+    });
+
+    if (existingTrip) {
+      return new NextResponse(
+        'You already have a trip with this title. Please choose a different title.',
+        { status: 409 }
+      );
+    }
+
     const newTrip = new Trip(data);
     await newTrip.save();
 
@@ -59,7 +72,7 @@ export async function POST(req: Request) {
   } catch (error: any) {
     console.error('Error creating trip:', error);
 
-    // Check for duplicate key error (code 11000)
+    // Check for duplicate key error (code 11000) as a backup
     if (error.code === 11000) {
       return new NextResponse(
         'You already have a trip with this title. Please choose a different title.',

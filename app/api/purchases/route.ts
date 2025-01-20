@@ -81,7 +81,7 @@ export async function POST(req: Request) {
 
     // Create the purchase record
     const purchase = new Purchase({
-      userId: new Types.ObjectId(session.user.id),
+      buyer: new Types.ObjectId(session.user.id),
       contentId: new Types.ObjectId(contentId),
       contentType,
       amount: content.price,

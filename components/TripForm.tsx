@@ -611,13 +611,19 @@ const TripForm: React.FC<TripFormProps> = ({
   const handleDelete = async () => {
     if (!initialData?.id) return;
 
+    if (!window.confirm('Are you sure you want to delete this trip?')) {
+      return;
+    }
+
     try {
       const response = await fetch(`/api/trips/${initialData.id}`, {
         method: 'DELETE',
       });
 
       if (!response.ok) {
-        throw new Error('Failed to delete trip');
+        const errorMessage = await response.text();
+        alert(errorMessage);
+        return;
       }
 
       alert('Trip deleted successfully!');

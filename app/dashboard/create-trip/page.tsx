@@ -16,22 +16,29 @@ const CreateTripPage = () => {
     <TripForm
       isEditing={false}
       onSave={async (data, status) => {
-        const response = await fetch('/api/trips', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ ...data, creatorId: creatorData._id }),
-        });
+        try {
+          const response = await fetch('/api/trips', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ...data, creatorId: creatorData._id }),
+          });
 
-        const result = await response.text();
-        console.log('Server response:', result);
-        if (!response.ok) {
-          console.error('Error creating Trip:', result);
-          alert(result || 'Error creating Trip');
-          return false;
-        } else {
+          const result = await response.text();
+          console.log('Server response:', result);
+
+          if (!response.ok) {
+            console.error('Error creating Trip:', result);
+            alert(result);
+            return false;
+          }
+
           alert('Trip created successfully!');
           router.push('/dashboard');
           return true;
+        } catch (error) {
+          console.error('Error creating Trip:', error);
+          alert('Failed to create trip. Please try again.');
+          return false;
         }
       }}
     />

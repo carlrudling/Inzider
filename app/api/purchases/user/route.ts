@@ -5,7 +5,7 @@ import dbConnect from '@/utils/database';
 import Purchase, { IPurchase } from '@/models/Purchase';
 import Trip, { ITrip } from '@/models/Trip';
 import GoTo, { IGoTo } from '@/models/GoTo';
-import { Types } from 'mongoose';
+import { Types, Document } from 'mongoose';
 
 export async function GET() {
   try {
@@ -86,81 +86,63 @@ export async function GET() {
     const [trips, gotos] = await Promise.all([
       Trip.find({
         _id: { $in: tripIds },
-      }).select('title description slides price currency') as Promise<ITrip[]>,
+      })
+        .populate('creatorId', 'username')
+        .select('title description slides price currency status'),
       GoTo.find({
         _id: { $in: gotoIds },
-      }).select('title description slides price currency') as Promise<IGoTo[]>,
+      })
+        .populate('creatorId', 'username')
+        .select('title description slides price currency status'),
     ]);
 
     console.log(
       'Found trips:',
-      trips.map((t) => t._id)
+      trips.map((t) => ({ id: t._id, status: t.status }))
     );
     console.log(
       'Found gotos:',
-      gotos.map((g) => g._id)
+      gotos.map((g) => ({ id: g._id, status: g.status }))
     );
 
     // Map purchases to content to include purchase dates
-    const tripsWithPurchaseInfo = (trips as (ITrip & { _id: Types.ObjectId })[])
-      .filter((trip) => {
-        // Only include trips that have a non-refunded purchase
+    const tripsWithPurchaseInfo = trips.map(
+      (trip: Document<unknown, {}, ITrip>) => {
         const purchase = tripPurchases.find(
-          (p) => p.contentId.toString() === trip._id.toString()
+          (p) =>
+            p.contentId.toString() === (trip._id as Types.ObjectId).toString()
         );
-        console.log('Trip filtering:', {
-          tripId: trip._id,
-          purchase: purchase
-            ? {
-                id: purchase._id,
-                status: purchase.status,
-                contentId: purchase.contentId,
-              }
-            : 'No purchase found',
-        });
-        return purchase && purchase.status === 'completed';
-      })
-      .map((trip) => {
-        const purchase = tripPurchases.find(
-          (p) => p.contentId.toString() === trip._id.toString()
-        );
+        const tripObj = trip.toObject();
         return {
-          ...trip.toObject(),
+          ...tripObj,
           purchaseDate: purchase?.createdAt,
-          purchaseId: purchase?._id, // Adding purchase ID for tracking
-          purchaseStatus: purchase?.status, // Adding status for verification
+          purchaseId: purchase?._id,
+          purchaseStatus: purchase?.status,
+          creatorUsername: (
+            tripObj.creatorId as unknown as { username: string }
+          ).username,
         };
-      });
+      }
+    );
 
-    const gotosWithPurchaseInfo = (gotos as (IGoTo & { _id: Types.ObjectId })[])
-      .filter((goto) => {
-        // Only include gotos that have a non-refunded purchase
+    const gotosWithPurchaseInfo = gotos.map(
+      (goto: Document<unknown, {}, IGoTo>) => {
         const purchase = gotoPurchases.find(
-          (p) => p.contentId.toString() === goto._id.toString()
+          (p) =>
+            p.contentId.toString() === (goto._id as Types.ObjectId).toString()
         );
-        console.log('Goto filtering:', {
-          gotoId: goto._id,
-          purchase: purchase
-            ? {
-                id: purchase._id,
-                status: purchase.status,
-                contentId: purchase.contentId,
-              }
-            : 'No purchase found',
-        });
-        return purchase && purchase.status === 'completed';
-      })
-      .map((goto) => {
-        const purchase = gotoPurchases.find(
-          (p) => p.contentId.toString() === goto._id.toString()
-        );
+        const gotoObj = goto.toObject();
         return {
-          ...goto.toObject(),
+          ...gotoObj,
           purchaseDate: purchase?.createdAt,
-          purchaseId: purchase?._id, // Adding purchase ID for tracking
-          purchaseStatus: purchase?.status, // Adding status for verification
+          purchaseId: purchase?._id,
+          purchaseStatus: purchase?.status,
+          creatorUsername: (
+            gotoObj.creatorId as unknown as { username: string }
+          ).username,
         };
-      });
+      }
+    );
 
     console.log(
       'Final trips to return:',

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import dbConnect from '@/utils/database';
 import GoTo from '@/models/GoTo';
+import Purchase from '@/models/Purchase';
 
 export async function GET(
   _req: Request,
@@ -34,6 +35,22 @@ export async function PUT(
     if (!existingGoTo) {
       console.error('GoTo not found with ID:', params.id);
       return new NextResponse('Not Found', { status: 404 });
+    }
+
+    // Check if another goto with the same title exists for this creator
+    if (data.title !== existingGoTo.title) {
+      const duplicateGoTo = await GoTo.findOne({
+        _id: { $ne: params.id },
+        creatorId: existingGoTo.creatorId,
+        title: data.title,
+      });
+
+      if (duplicateGoTo) {
+        return new NextResponse(
+          'You already have a GoTo with this title. Please choose a different title.',
+          { status: 409 }
+        );
+      }
     }
 
     console.log('Existing GoTo found:', existingGoTo);
@@ -118,6 +135,21 @@ export async function DELETE(
   }
   try {
     await dbConnect();
+
+    // Check if there are any completed or pending purchases for this goto
+    const existingPurchases = await Purchase.findOne({
+      contentId: params.id,
+      contentType: 'goto',
+      status: { $in: ['completed', 'pending'] },
+    });
+
+    if (existingPurchases) {
+      return new NextResponse(
+        'Cannot delete this GoTo as it has been purchased by users. Consider updating its content instead.',
+        { status: 403 }
+      );
+    }
+
     const deletedGoTo = await GoTo.findByIdAndDelete(params.id);
     if (!deletedGoTo) {
       return new NextResponse('Not Found', { status: 404 });

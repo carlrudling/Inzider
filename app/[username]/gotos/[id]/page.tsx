@@ -24,30 +24,55 @@ async function getGoToData(username: string, gotoId: string) {
     return null;
   }
 
+  // Convert MongoDB objects to plain JavaScript objects
   return {
-    title: goto.title,
-    price: goto.price,
-    currency: goto.currency,
-    description: goto.description,
-    slides: goto.slides,
-    specifics: goto.specifics || [],
+    title: goto.title || '',
+    price: goto.price || 0,
+    currency: goto.currency || 'USD',
+    description: goto.description || '',
+    slides: (goto.slides || []).map((slide) => ({
+      type: slide.type || 'image',
+      src: slide.src || '',
+    })),
+    specifics: (goto.specifics || []).map((specific) => ({
+      label: specific.label || '',
+      value: specific.value || '',
+    })),
     reviewCount: goto.reviews?.length || 0,
     averageRating: goto.avgRating || 0,
     purchaseCount: goto.buyers?.length || 0,
-    spots: goto.spots || [],
+    spots: (goto.spots || []).map((spot) => ({
+      title: spot.title || '',
+      location: spot.location || '',
+      description: spot.description || '',
+      specifics: (spot.specifics || []).map((specific) => ({
+        label: specific.label || '',
+        value: specific.value || '',
+      })),
+      slides: (spot.slides || []).map((slide) => ({
+        type: slide.type || 'image',
+        src: slide.src || '',
+      })),
+    })),
   };
 }
 
 export default async function GoToPage({
-  params: { username, id },
+  params,
 }: {
   params: { username: string; id: string };
 }) {
-  const data = await getGoToData(username, id);
+  const data = await getGoToData(params.username, params.id);
 
   if (!data) {
     notFound();
   }
 
-  return <GoToPageContent initialData={data} username={username} id={id} />;
+  return (
+    <GoToPageContent
+      initialData={data}
+      username={params.username}
+      id={params.id}
+    />
+  );
 }

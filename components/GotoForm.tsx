@@ -654,7 +654,22 @@ const GoToForm: React.FC<GoToFormProps> = ({
     }
 
     try {
-      // Delete all media files first
+      // Delete the GoTo first to check if it can be deleted
+      const response = await fetch(`/api/gotos/${initialData.id}`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        const error = await response.text();
+        alert(error);
+        setShowDeleteConfirmation(false);
+        return;
+      }
+
+      // If deletion is allowed, proceed with deleting media files
       const allSlides = [...slides, ...spots.flatMap((spot) => spot.slides)];
 
       for (const slide of allSlides) {
@@ -675,22 +690,10 @@ const GoToForm: React.FC<GoToFormProps> = ({
         }
       }
 
-      // Then delete the GoTo itself
-      const response = await fetch(`/api/gotos/${initialData.id}`, {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (!response.ok) {
-        const error = await response.text();
-        throw new Error(`Failed to delete GoTo: ${error}`);
-      }
-
       router.push('/dashboard');
     } catch (error) {
       console.error('Error deleting GoTo:', error);
+      alert('Error deleting GoTo');
       setShowDeleteConfirmation(false);
     }
   };

@@ -13,8 +13,9 @@ const CreateGoToPage = () => {
     });
 
     if (!response.ok) {
-      console.error('Error creating GoTo:', await response.text());
-      alert('Error creating GoTo');
+      const errorMessage = await response.text();
+      console.error('Error creating GoTo:', errorMessage);
+      alert(errorMessage);
     } else {
       alert('GoTo created successfully!');
     }

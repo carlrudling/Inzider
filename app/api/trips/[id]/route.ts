@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import dbConnect from '@/utils/database';
 import Trip from '@/models/Trip';
+import Purchase from '@/models/Purchase';
 
 export async function GET(
   request: Request,
@@ -34,6 +35,22 @@ export async function PUT(
     if (!existingTrip) {
       console.error('Trip not found with ID:', params.id);
       return new NextResponse('Not Found', { status: 404 });
+    }
+
+    // Check if another trip with the same title exists for this creator
+    if (data.title !== existingTrip.title) {
+      const duplicateTrip = await Trip.findOne({
+        _id: { $ne: params.id },
+        creatorId: existingTrip.creatorId,
+        title: data.title,
+      });
+
+      if (duplicateTrip) {
+        return new NextResponse(
+          'You already have a trip with this title. Please choose a different title.',
+          { status: 409 }
+        );
+      }
     }
 
     console.log('Existing Trip found:', existingTrip);
@@ -129,6 +146,21 @@ export async function DELETE(
   }
   try {
     await dbConnect();
+
+    // Check if there are any completed or pending purchases for this trip
+    const existingPurchases = await Purchase.findOne({
+      contentId: params.id,
+      contentType: 'trip',
+      status: { $in: ['completed', 'pending'] },
+    });
+
+    if (existingPurchases) {
+      return new NextResponse(
+        'Cannot delete this trip as it has been purchased by users. Consider updating its content instead.',
+        { status: 403 }
+      );
+    }
+
     const deletedTrip = await Trip.findByIdAndDelete(params.id);
     if (!deletedTrip) {
       return new NextResponse('Not Found', { status: 404 });
