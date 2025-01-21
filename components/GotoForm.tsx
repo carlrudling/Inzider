@@ -618,9 +618,16 @@ const GoToForm: React.FC<GoToFormProps> = ({
       description: creatorWords,
       price: parseFloat(price) || 0,
       currency,
-      specifics,
+      specifics: specifics.filter(
+        (spec) => spec.label.trim() && spec.value.toString().trim()
+      ),
       slides: processedSlides,
-      spots: updatedSpots,
+      spots: updatedSpots.map((spot) => ({
+        ...spot,
+        specifics: spot.specifics.filter(
+          (spec) => spec.label.trim() && spec.value.toString().trim()
+        ),
+      })),
       status,
     };
     console.log('Specifics during save:', specifics);

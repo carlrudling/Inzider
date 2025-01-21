@@ -41,6 +41,13 @@ interface AboutPageComponentProps {
     text: string;
     userName?: string;
   }>;
+  spots?: Array<{
+    title: string;
+    location: string;
+    description: string;
+    specifics: Specific[];
+    slides: Slide[];
+  }>;
 }
 
 const AboutPageComponent: React.FC<AboutPageComponentProps> = ({
@@ -60,6 +67,7 @@ const AboutPageComponent: React.FC<AboutPageComponentProps> = ({
   onGetItClick,
   hasPurchased = false,
   reviews = [],
+  spots = [],
 }) => {
   const { data: session } = useSession();
   const router = useRouter();
@@ -190,7 +198,13 @@ const AboutPageComponent: React.FC<AboutPageComponentProps> = ({
             {/* Specifics - Only show if there are specifics */}
             {(status === 'draft' || specifics.length > 0) && (
               <div className="flex justify-center mt-2 w-full px-4">
-                <DetailsBlock title="Specifics" details={specifics} />
+                <DetailsBlock
+                  title="Specifics"
+                  details={[
+                    { label: 'Number of spots', value: spots?.length || 0 },
+                    ...(specifics || []),
+                  ]}
+                />
               </div>
             )}
 

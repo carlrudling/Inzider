@@ -99,6 +99,7 @@ export default function GoToPageContent({
           }
         }}
         hasPurchased={hasPurchased}
+        spots={initialData.spots || []}
       />
     </div>
   );
