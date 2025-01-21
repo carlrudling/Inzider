@@ -72,7 +72,7 @@ export async function POST(req: Request) {
       metadata: {
         contentId: contentId,
         contentType: contentType,
-        userId: session.user.id,
+        buyer: session.user.id,
         creatorId: content.creatorId.toString(),
       },
     });

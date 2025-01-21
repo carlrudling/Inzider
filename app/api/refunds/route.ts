@@ -151,37 +151,27 @@ export async function POST(req: Request) {
     ).lean()) as IPurchase | null;
     console.log('Found purchase:', purchase);
 
+    // Check if the purchase exists and belongs to the user
     if (!purchase) {
-      return NextResponse.json(
-        { error: 'No completed purchase found for this content' },
-        { status: 404 }
-      );
+      console.log('Purchase not found');
+      return new NextResponse('Purchase not found', { status: 404 });
     }
 
-    // Update the purchase to include the buyer information if it's missing
-    if (!purchase.buyer && !purchase.userId) {
-      await Purchase.findByIdAndUpdate(purchase._id, {
-        buyer: buyer._id,
-      });
-      purchase.buyer = buyer._id;
+    if (!purchase.buyer) {
+      console.log('Purchase has no buyer');
+      return new NextResponse('Invalid purchase data', { status: 400 });
     }
 
-    // Now check if this purchase belongs to our buyer
-    const purchaseBuyerId = purchase.buyer || purchase.userId;
     console.log(
-      'Comparing purchase buyer/userId:',
-      purchaseBuyerId?.toString(),
-      'with buyer._id:',
-      buyer._id.toString()
+      'Comparing purchase buyer:',
+      purchase.buyer.toString(),
+      'with session user:',
+      session.user.id
     );
-    if (
-      !purchaseBuyerId ||
-      purchaseBuyerId.toString() !== buyer._id.toString()
-    ) {
-      return NextResponse.json(
-        { error: 'This purchase does not belong to the specified buyer' },
-        { status: 404 }
-      );
+
+    if (purchase.buyer.toString() !== session.user.id) {
+      console.log('Purchase does not belong to user');
+      return new NextResponse('Unauthorized', { status: 401 });
     }
 
     // Verify the creator is the owner of the content

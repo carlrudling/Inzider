@@ -13,8 +13,14 @@ async function getGoToData(username: string, gotoId: string) {
     return null;
   }
 
-  // Then find the specific GoTo
-  const goto = await GoTo.findById(gotoId).lean();
+  // Then find the specific GoTo with populated reviews
+  const goto = await GoTo.findById(gotoId)
+    .populate({
+      path: 'reviews',
+      select: 'rating text userName createdAt',
+    })
+    .lean();
+
   if (!goto) {
     return null;
   }
@@ -23,6 +29,8 @@ async function getGoToData(username: string, gotoId: string) {
   if (goto.creatorId.toString() !== creator._id.toString()) {
     return null;
   }
+
+  console.log('Found reviews:', goto.reviews); // Debug log
 
   // Convert MongoDB objects to plain JavaScript objects
   return {
@@ -41,6 +49,11 @@ async function getGoToData(username: string, gotoId: string) {
     reviewCount: goto.reviews?.length || 0,
     averageRating: goto.avgRating || 0,
     purchaseCount: goto.buyers?.length || 0,
+    reviews: (goto.reviews || []).map((review) => ({
+      rating: review.rating,
+      text: review.text,
+      userName: review.userName,
+    })),
     spots: (goto.spots || []).map((spot) => ({
       title: spot.title || '',
       location: spot.location || '',
@@ -57,17 +70,19 @@ async function getGoToData(username: string, gotoId: string) {
   };
 }
 
-export default async function GoToPage({
-  params,
-}: {
+interface Props {
   params: { username: string; id: string };
-}) {
+}
+
+export default async function GoToPage({ params }: Props) {
+  // Get the data first
   const data = await getGoToData(params.username, params.id);
 
   if (!data) {
     notFound();
   }
 
+  // Pass the data to the client component
   return (
     <GoToPageContent
       initialData={data}

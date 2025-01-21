@@ -1,7 +1,7 @@
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { NextResponse } from 'next/server';
-import dbConnect from '@/utils/database';
+import dbConnect from '@/lib/dbConnect';
 import Purchase from '@/models/Purchase';
 import GoTo from '@/models/GoTo';
 import Trip from '@/models/Trip';
@@ -53,30 +53,44 @@ export async function POST(req: Request) {
     const metadata = paymentIntent.metadata as {
       contentId: string;
       contentType: string;
-      userId: string;
+      buyer: string;
     };
 
     if (
       metadata.contentId !== contentId ||
       metadata.contentType !== contentType ||
-      metadata.userId !== session.user.id
+      metadata.buyer !== session.user.id
     ) {
       console.log('Payment details mismatch');
       return new NextResponse('Payment verification failed', { status: 400 });
     }
 
-    // Find the content (Trip or GoTo)
-    let content;
-    if (contentType === 'trip') {
-      content = await Trip.findById(contentId).lean();
-    } else {
-      content = await GoTo.findById(contentId).lean();
-    }
+    // Find the content
+    const Model = contentType === 'trip' ? Trip : GoTo;
+    const content = await Model.findById(contentId);
     console.log('Found content:', content);
 
     if (!content) {
       console.log('Content not found');
       return new NextResponse('Content not found', { status: 404 });
+    }
+
+    // Check if there's an existing purchase that's not refunded
+    const existingPurchase = await Purchase.findOne({
+      buyer: new Types.ObjectId(session.user.id),
+      contentId: new Types.ObjectId(contentId),
+      contentType,
+      status: { $ne: 'refunded' },
+    });
+
+    if (existingPurchase) {
+      console.log('Active purchase already exists');
+      return new NextResponse(
+        'You already have an active purchase for this content',
+        {
+          status: 400,
+        }
+      );
     }
 
     // Create the purchase record
@@ -90,7 +104,7 @@ export async function POST(req: Request) {
       creatorAmount: content.price * 0.8, // 80% to creator
       platformAmount: content.price * 0.2, // 20% to platform
       stripePaymentId,
-      status: 'completed',
+      status: 'pending',
     });
     console.log('Created purchase object:', purchase);
 

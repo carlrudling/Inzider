@@ -56,6 +56,11 @@ function PaymentSuccessContent() {
           case 'succeeded':
             // Create the purchase record
             try {
+              console.log('Creating purchase record:', {
+                contentId,
+                contentType,
+                stripePaymentId: paymentIntent.id,
+              });
               const response = await fetch('/api/purchases', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -68,10 +73,33 @@ function PaymentSuccessContent() {
 
               if (!response.ok) {
                 const errorText = await response.text();
+                console.error('Failed to create purchase:', {
+                  status: response.status,
+                  statusText: response.statusText,
+                  error: errorText,
+                });
+
+                // If purchase already exists, treat it as a success
+                if (
+                  response.status === 400 &&
+                  (errorText.includes('Purchase already exists') ||
+                    errorText.includes('active purchase for this content'))
+                ) {
+                  setStatus('success');
+                  setMessage('Payment successful! Redirecting...');
+                  setTimeout(() => {
+                    router.push('/user');
+                  }, 2000);
+                  return;
+                }
+
                 throw new Error(
                   `Failed to create purchase record: ${errorText}`
                 );
               }
+
+              const purchaseData = await response.json();
+              console.log('Purchase created successfully:', purchaseData);
 
               setStatus('success');
               setMessage('Payment successful! Redirecting...');

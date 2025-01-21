@@ -67,9 +67,12 @@ const purchaseSchema = new mongoose.Schema(
 );
 
 // Create indexes for common queries
-purchaseSchema.index({ buyer: 1, contentType: 1 });
+purchaseSchema.index(
+  { buyer: 1, contentId: 1, contentType: 1, status: 1 },
+  { unique: true, partialFilterExpression: { status: { $ne: 'refunded' } } }
+);
 purchaseSchema.index({ contentId: 1, status: 1 });
-purchaseSchema.index({ stripePaymentId: 1 });
+purchaseSchema.index({ stripePaymentId: 1 }, { unique: true });
 purchaseSchema.index({ creatorId: 1 });
 
 export default mongoose.models.Purchase ||

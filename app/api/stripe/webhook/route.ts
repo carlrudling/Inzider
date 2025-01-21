@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { headers } from 'next/headers';
 import Stripe from 'stripe';
-import dbConnect from '@/utils/database';
+import dbConnect from '@/lib/dbConnect';
 import Purchase from '@/models/Purchase';
 import config from '@/config';
 
@@ -15,27 +15,50 @@ export async function POST(req: Request) {
   const sig = reqHeaders.get('stripe-signature');
 
   if (!sig) {
+    console.log('No Stripe signature found in webhook request');
     return new NextResponse('No signature', { status: 400 });
   }
 
   try {
+    console.log(
+      'Constructing Stripe event with signature:',
+      sig.substring(0, 20) + '...'
+    );
     const event = stripe.webhooks.constructEvent(
       body,
       sig,
       config.stripe.webhookSecret!
     );
+    console.log('Webhook event constructed:', event.type);
 
     await dbConnect();
+    console.log('Connected to database');
 
     switch (event.type) {
       case 'payment_intent.succeeded':
         const paymentIntent = event.data.object as Stripe.PaymentIntent;
-        console.log('Payment succeeded:', paymentIntent.id);
+        console.log('Payment succeeded:', {
+          id: paymentIntent.id,
+          metadata: paymentIntent.metadata,
+          amount: paymentIntent.amount,
+          currency: paymentIntent.currency,
+        });
 
         // Update purchase status if needed
-        await Purchase.findOneAndUpdate(
+        const updatedPurchase = await Purchase.findOneAndUpdate(
           { stripePaymentId: paymentIntent.id },
-          { status: 'completed' }
+          { status: 'completed' },
+          { new: true }
+        );
+        console.log(
+          'Updated purchase:',
+          updatedPurchase
+            ? {
+                id: updatedPurchase._id,
+                status: updatedPurchase.status,
+                stripePaymentId: updatedPurchase.stripePaymentId,
+              }
+            : 'No purchase found'
         );
         break;
 

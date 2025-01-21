@@ -9,6 +9,7 @@ import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import PaymentFormWrapper from './PaymentForm';
+import ReviewForm from './ReviewForm';
 
 interface Slide {
   type: 'image' | 'video';
@@ -36,6 +37,7 @@ interface AboutPageComponentProps {
   username: string;
   onGetItClick?: () => void;
   hasPurchased?: boolean;
+  isLoading?: boolean;
   reviews?: Array<{
     rating: number;
     text: string;
@@ -66,6 +68,7 @@ const AboutPageComponent: React.FC<AboutPageComponentProps> = ({
   username,
   onGetItClick,
   hasPurchased = false,
+  isLoading = false,
   reviews = [],
   spots = [],
 }) => {
@@ -99,6 +102,32 @@ const AboutPageComponent: React.FC<AboutPageComponentProps> = ({
     console.error('Payment error:', errorMessage);
     setError(errorMessage);
     setShowPayment(false);
+  };
+
+  const handleReviewSubmit = async (review: {
+    rating: number;
+    text: string;
+  }) => {
+    try {
+      const response = await fetch(`/api/${contentType}s/${id}/reviews`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(review),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to submit review');
+      }
+
+      // Refresh the page to show the new review
+      router.refresh();
+    } catch (error) {
+      console.error('Error submitting review:', error);
+      throw error; // Re-throw the error to be handled by the ReviewForm component
+    }
   };
 
   // Map of currency codes to symbols
@@ -210,8 +239,24 @@ const AboutPageComponent: React.FC<AboutPageComponentProps> = ({
 
             {/* Reviews List - Only show if there are reviews */}
             {(status === 'draft' || reviews.length > 0) && (
-              <div className="flex justify-center mt-2 w-full px-4">
+              <div className="flex justify-center mt-4 w-full px-4">
                 <ReviewsList reviews={reviews} />
+              </div>
+            )}
+
+            {/* Review Form - Only show for users who have purchased and haven't reviewed yet */}
+            {hasPurchased && (
+              <div className="flex justify-center mt-4 w-full px-4">
+                {reviews.some(
+                  (review) => review.userName === session?.user?.name
+                ) ? (
+                  <div className="w-full bg-gray-50 p-4 rounded-lg text-center text-gray-600 text-sm">
+                    Thank you for your review! You can see it in the reviews
+                    section above.
+                  </div>
+                ) : (
+                  <ReviewForm onSubmit={handleReviewSubmit} />
+                )}
               </div>
             )}
 
@@ -264,7 +309,9 @@ const AboutPageComponent: React.FC<AboutPageComponentProps> = ({
               <span className="absolute left-1/2 transform -translate-x-1/2 font-poppins font-bold italic text-text-color1 text-lg">
                 Inzider
               </span>
-              {hasPurchased ? (
+              {isLoading ? (
+                <div className="bg-gray-300 py-2 px-4 rounded-md w-24 h-10 animate-pulse"></div>
+              ) : hasPurchased ? (
                 <button
                   onClick={onGetItClick}
                   className="bg-green-500 py-2 px-4 text-white font-poppins rounded-md transition transform active:scale-95 active:shadow-none duration-200 whitespace-nowrap overflow-hidden text-ellipsis"
