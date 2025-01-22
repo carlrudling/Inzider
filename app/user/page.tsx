@@ -18,6 +18,7 @@ interface PurchaseData {
     price: number;
     currency: string;
     creatorUsername: string;
+    avgRating: number;
   }>;
   gotos: Array<{
     _id: string;
@@ -30,6 +31,7 @@ interface PurchaseData {
     price: number;
     currency: string;
     creatorUsername: string;
+    avgRating: number;
   }>;
 }
 
@@ -86,6 +88,7 @@ export default function UserDashboard() {
                     currency={trip.currency}
                     navigateTo={`/${trip.creatorUsername}/trips/${trip._id}`}
                     mediaType={trip.slides?.[0]?.type || 'image'}
+                    stars={trip.avgRating}
                   />
                 ))}
               </div>
@@ -110,6 +113,7 @@ export default function UserDashboard() {
                     currency={goto.currency}
                     navigateTo={`/${goto.creatorUsername}/gotos/${goto._id}`}
                     mediaType={goto.slides?.[0]?.type || 'image'}
+                    stars={goto.avgRating}
                   />
                 ))}
               </div>

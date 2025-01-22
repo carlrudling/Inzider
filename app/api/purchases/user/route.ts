@@ -88,12 +88,12 @@ export async function GET() {
         _id: { $in: tripIds },
       })
         .populate('creatorId', 'username')
-        .select('title description slides price currency status'),
+        .select('title description slides price currency status avgRating'),
       GoTo.find({
         _id: { $in: gotoIds },
       })
         .populate('creatorId', 'username')
-        .select('title description slides price currency status'),
+        .select('title description slides price currency status avgRating'),
     ]);
 
     console.log(
