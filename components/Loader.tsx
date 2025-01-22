@@ -1,3 +1,5 @@
+'use client';
+
 import React, { Suspense } from 'react';
 
 const Lottie = React.lazy(() => import('lottie-react'));
