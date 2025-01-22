@@ -31,6 +31,9 @@ interface GoToFormProps {
     specifics?: { label: string; value: string }[];
     spots?: Spot[];
     status?: 'edit' | 'launch';
+    reviews?: any[];
+    avgRating?: number;
+    buyers?: any[];
   };
   isEditing: boolean;
   onSave: (data: any, status: 'edit' | 'launch') => Promise<boolean | void>;
@@ -1035,9 +1038,10 @@ const GoToForm: React.FC<GoToFormProps> = ({
                 })}
                 specifics={specifics}
                 creatorWords={creatorWords}
-                reviewCount={36}
-                averageRating={4.5}
-                purchaseCount={278}
+                reviewCount={initialData?.reviews?.length || 0}
+                averageRating={initialData?.avgRating || 0}
+                purchaseCount={initialData?.buyers?.length || 0}
+                reviews={initialData?.reviews || []}
               />
             )}
 

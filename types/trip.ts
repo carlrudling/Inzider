@@ -22,15 +22,17 @@ export interface Day {
 }
 
 export interface TripData {
-  id: string;
-  title?: string;
-  price?: string;
-  currency?: string;
-  description?: string;
-  slides?: (File | Slide)[];
-  specifics?: Specific[];
-  days?: Day[];
+  id?: string;
+  title: string;
+  price: string;
+  currency: string;
+  description: string;
+  slides: Array<File | Slide>;
+  specifics: Specific[];
   startDate?: Date;
   endDate?: Date;
-  status?: 'edit' | 'launch';
+  days: Day[];
+  reviews?: any[];
+  avgRating?: number;
+  buyers?: any[];
 }

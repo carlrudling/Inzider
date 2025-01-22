@@ -26,6 +26,7 @@ interface AboutTripPageProps {
   reviewCount: number;
   averageRating: number;
   purchaseCount: number;
+  reviews?: any[];
 }
 
 const AboutTripPage: React.FC<AboutTripPageProps> = ({
@@ -38,6 +39,7 @@ const AboutTripPage: React.FC<AboutTripPageProps> = ({
   reviewCount,
   averageRating,
   purchaseCount,
+  reviews,
 }) => {
   // Map of currency codes to symbols
   const currencySymbols: Record<string, string> = {
@@ -131,7 +133,7 @@ const AboutTripPage: React.FC<AboutTripPageProps> = ({
 
             {/* Reviews List */}
             <div className="flex justify-center mt-2 w-full px-4">
-              <ReviewsList />
+              <ReviewsList reviews={reviews || []} />
             </div>
 
             {/* Button and Logo */}
