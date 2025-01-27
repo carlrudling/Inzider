@@ -176,7 +176,7 @@ const AboutPageComponent: React.FC<AboutPageComponentProps> = ({
             {/* Content aligned to the left with margin */}
             <div className="flex flex-row justify-between items-center px-4">
               {/* Heading and Price */}
-              <h3 className="sm:text-lg text-base font-semibold font-satoshi text-black mb-2 text-left">
+              <h3 className="sm:text-lg text-base font-semibold font-satoshi text-[#1C1C1C] mb-2 text-left">
                 {title}
               </h3>
               <div className="bg-custom-white-blue text-custom-blue py-1 px-3 text-sm font-semibold font-satoshi rounded-full">
@@ -190,7 +190,7 @@ const AboutPageComponent: React.FC<AboutPageComponentProps> = ({
             {(status === 'draft' || reviewCount > 0) && (
               <div className="mt-2 flex items-center space-x-1 px-4">
                 {renderStars(averageRating)}
-                <p className="text-black text-sm ml-2 text-xs font-inter">
+                <p className="text-[#1C1C1C] text-sm ml-2 text-xs font-inter">
                   {reviewCount} Reviews
                 </p>
               </div>
@@ -198,7 +198,7 @@ const AboutPageComponent: React.FC<AboutPageComponentProps> = ({
 
             {/* Purchase count - Only show if there are purchases */}
             {(status === 'draft' || purchaseCount > 0) && (
-              <p className="px-4 text-black text-sm text-xs font-inter mt-2">
+              <p className="px-4 text-[#1C1C1C] text-sm text-xs font-inter mt-2">
                 <span className="font-bold">{purchaseCount}</span> people have
                 purchased this package
               </p>

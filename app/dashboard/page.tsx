@@ -10,6 +10,7 @@ import Link from 'next/link';
 import { useCreatorData } from '../../provider/CreatorProvider';
 import Card from '../../components/Card';
 import Loader from '@/components/Loader';
+import Footer from '@/components/Footer';
 
 const HomePage = () => {
   const { creatorData, loading } = useCreatorData();
@@ -140,8 +141,8 @@ const HomePage = () => {
   }
 
   return (
-    <div>
-      <section className="min-h-6000 bg-white px-4 md:px-10 py-8">
+    <div className="min-h-screen flex flex-col">
+      <section className="flex-grow bg-white px-4 md:px-10 py-8">
         {/* Navigation component */}
         <div className="absolute top-0 z-20 left-0 w-full">
           <Nav isWhiteText={false} />
@@ -348,41 +349,7 @@ const HomePage = () => {
           )}
         </div>
       </section>
-      <footer className="flex flex-col items-center justify-center py-16 bg-custom-new-darkPurple text-center text-gray-800">
-        <div className=" sm:items-center sm:justify-between">
-          <h2 className="self-center logo_text whitespace-nowrap dark:text-white mb-4">
-            Inzider
-          </h2>
-
-          <ul className="flex flex-wrap items-center mb-6 text-sm font-medium text-gray-500 sm:mb-0 dark:text-gray-400">
-            <li>
-              <a href="#" className="hover:underline me-4 md:me-6">
-                User Agreement
-              </a>
-            </li>
-            <li>
-              <a href="#" className="hover:underline me-4 md:me-6">
-                Privacy Policy
-              </a>
-            </li>
-            <li>
-              <a href="#" className="hover:underline">
-                Contact
-              </a>
-            </li>
-          </ul>
-        </div>
-        <hr className="my-6 border-gray-200 sm:mx-auto dark:border-gray-700 lg:my-8" />
-        <span className="block text-sm text-gray-500 sm:text-center dark:text-gray-400">
-          © 2025{' '}
-          <a href="https://flowbite.com/" className="hover:underline">
-            Inzider™
-          </a>
-          . All Rights Reserved.
-        </span>
-
-        <FaInstagram className="w-6 h-6 mt-2 text-gray-500  dark:text-gray-400 cursor-pointer" />
-      </footer>
+      <Footer />
     </div>
   );
 };

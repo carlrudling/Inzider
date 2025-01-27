@@ -533,7 +533,7 @@ const SettingsPage = () => {
         {selectedTab === 'Connect' && (
           <>
             <h1 className="text-2xl font-bold mb-4">Connect</h1>
-            <p className="text-black mb-6">
+            <p className="text-[#1C1C1C] mb-6">
               You can self choose how you share your packages with your
               customers, but we recommend sharing your landing page in your
               social media bios. If you already have a link service and would
@@ -545,7 +545,7 @@ const SettingsPage = () => {
             <div className="space-y-4">
               {/* Landing Page */}
               <div>
-                <label className="block text-sm font-medium text-black italic mb-2">
+                <label className="block text-sm font-medium text-[#1C1C1C] italic mb-2">
                   Landingpage
                 </label>
                 <div className="flex items-center bg-gray-100 border border-gray-300 rounded-md p-2">
@@ -561,7 +561,7 @@ const SettingsPage = () => {
                         `www.inzider.io/${creatorData?.username || ''}`
                       )
                     }
-                    className="ml-2 text-black hover:text-blue-700 focus:outline-none"
+                    className="ml-2 text-[#1C1C1C] hover:text-blue-700 focus:outline-none"
                   >
                     <LuCopy />
                   </button>
@@ -570,7 +570,7 @@ const SettingsPage = () => {
 
               {/* BrowseTrips Page */}
               <div>
-                <label className="block text-sm font-medium text-black italic mb-2">
+                <label className="block text-sm font-medium text-[#1C1C1C] italic mb-2">
                   BrowseTrips page
                 </label>
                 <div className="flex items-center bg-gray-100 border border-gray-300 rounded-md p-2">
@@ -588,7 +588,7 @@ const SettingsPage = () => {
                         `www.inzider.io/${creatorData?.username || ''}/trips`
                       )
                     }
-                    className="ml-2 text-black hover:text-blue-700 focus:outline-none"
+                    className="ml-2 text-[#1C1C1C] hover:text-blue-700 focus:outline-none"
                   >
                     <LuCopy />
                   </button>
@@ -597,7 +597,7 @@ const SettingsPage = () => {
 
               {/* BrowseGoTos Page */}
               <div>
-                <label className="block text-sm font-medium text-black italic mb-2">
+                <label className="block text-sm font-medium text-[#1C1C1C] italic mb-2">
                   BrowseGoTos page
                 </label>
                 <div className="flex items-center bg-gray-100 border border-gray-300 rounded-md p-2">
@@ -615,7 +615,7 @@ const SettingsPage = () => {
                         `www.inzider.io/${creatorData?.username || ''}/gotos`
                       )
                     }
-                    className="ml-2 text-black hover:text-blue-700 focus:outline-none"
+                    className="ml-2 text-[#1C1C1C] hover:text-blue-700 focus:outline-none"
                   >
                     <LuCopy />
                   </button>
@@ -629,7 +629,8 @@ const SettingsPage = () => {
           <>
             <h1 className="text-2xl font-bold mb-4">Support</h1>
             <p className="text-gray-600 mb-6">
-              If you run into any issues, please{' '}
+              If you run into any issues, have feature suggestions or other
+              questions please{' '}
               <a
                 href="mailto:support.inzider@gmail.com"
                 className="text-purple-600 hover:text-purple-700 underline"

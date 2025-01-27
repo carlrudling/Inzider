@@ -31,7 +31,7 @@ const TripCard: React.FC<TripCardProps> = ({
       <div className="w-1/2 p-6 flex flex-col justify-between">
         {/* Title and Description */}
         <div>
-          <h2 className="text-md font-bold text-black flex items-center">
+          <h2 className="text-md font-bold text-[#1C1C1C] flex items-center">
             {title}
             <span className="ml-2">🏄‍♂️</span> {/* Emoji for decoration */}
           </h2>

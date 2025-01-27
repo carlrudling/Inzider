@@ -22,7 +22,7 @@ const GoToHeader: React.FC<GoToHeaderProps> = ({
 
         {/* Title and Subtitle */}
         <div>
-          <h3 className="font-semibold text-lg text-black font-satoshi">
+          <h3 className="font-semibold text-lg text-[#1C1C1C] font-satoshi">
             {title}
           </h3>
           <p className="text-text-color1 italic font-satoshi text-sm">

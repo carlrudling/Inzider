@@ -28,8 +28,8 @@ const DetailsBlock: React.FC<DetailsBlockProps> = ({ title, details }) => {
         {title}
       </h3>
       {validDetails.map((detail, index) => (
-        <p key={index} className="font-satoshi text-black ml-4 text-sm">
-          <span className="font-semibold text-black">{detail.label}: </span>
+        <p key={index} className="font-satoshi text-[#1C1C1C] ml-4 text-sm">
+          <span className="font-semibold text-[#1C1C1C]">{detail.label}: </span>
           {detail.value}
         </p>
       ))}

@@ -25,8 +25,8 @@ const LocationBlock: React.FC<LocationBlockProps> = ({ address }) => {
       </h3>
 
       <div className="ml-6 flex items-start space-x-2">
-        <FaMapMarkerAlt className="text-black self-start mt-1" />
-        <p className="text-black text-sm font-inter break-words leading-relaxed">
+        <FaMapMarkerAlt className="text-[#1C1C1C] self-start mt-1" />
+        <p className="text-[#1C1C1C] text-sm font-inter break-words leading-relaxed">
           {address}
         </p>
       </div>

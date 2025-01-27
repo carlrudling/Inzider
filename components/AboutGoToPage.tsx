@@ -39,7 +39,7 @@ const AboutGoToPage = () => {
             {/* Content aligned to the left with margin */}
             <div className="flex flex-row justify-between items-center px-4">
               {/* Heading and Price */}
-              <h3 className="sm:text-lg text-base font-semibold font-satoshi text-black mb-2 text-left">
+              <h3 className="sm:text-lg text-base font-semibold font-satoshi text-[#1C1C1C] mb-2 text-left">
                 Drinks in San Sebastian
               </h3>
               {/* 'Bought' Badge */}
@@ -58,13 +58,13 @@ const AboutGoToPage = () => {
                 <FaStar className="h-4 w-4 text-gray-200 absolute clip-half" />
               </div>
               <FaStar className="h-4 w-4 text-gray-200" />
-              <p className="text-black text-sm ml-2 text-xs font-inter">
+              <p className="text-[#1C1C1C] text-sm ml-2 text-xs font-inter">
                 36 Reviews
               </p>
             </div>
 
             {/* Purchase count */}
-            <p className="px-4 text-black text-sm text-xs font-inter mt-2">
+            <p className="px-4 text-[#1C1C1C] text-sm text-xs font-inter mt-2">
               <span className="font-bold">278</span> people have purchased this
               package
             </p>

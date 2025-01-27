@@ -80,7 +80,7 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ onSubmit }) => {
           value={text}
           onChange={(e) => setText(e.target.value)}
           placeholder="Write your review here..."
-          className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-custom-purple mb-4 text-black"
+          className="w-full p-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-custom-purple mb-4 text-[#1C1C1C]"
           rows={4}
         />
 

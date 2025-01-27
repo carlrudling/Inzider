@@ -26,7 +26,7 @@ if (!global.mongoose) {
   global.mongoose = cached;
 }
 
-async function dbConnect() {
+async function dbConnect(retries = 3) {
   if (cached.conn) {
     return cached.conn;
   }
@@ -34,6 +34,8 @@ async function dbConnect() {
   if (!cached.promise) {
     const opts = {
       bufferCommands: false,
+      serverSelectionTimeoutMS: 5000, // Timeout after 5 seconds
+      connectTimeoutMS: 10000, // Connection timeout after 10 seconds
     };
 
     cached.promise = mongoose.connect(MONGODB_URI!, opts).then((mongoose) => {
@@ -44,7 +46,13 @@ async function dbConnect() {
   try {
     cached.conn = await cached.promise;
   } catch (e) {
-    cached.promise = null;
+    if (retries > 0) {
+      console.log(
+        `Database connection failed, retrying... (${retries} attempts left)`
+      );
+      cached.promise = null;
+      return dbConnect(retries - 1);
+    }
     throw e;
   }
 

@@ -15,7 +15,7 @@ const CreatorNav = () => {
 
       {/* Name and Username */}
       <div className="flex flex-col ml-2">
-        <p className="text-base font-bold text-black">Joseph Garcia</p>
+        <p className="text-base font-bold text-[#1C1C1C]">Joseph Garcia</p>
         <p className="text-xs text-gray-500">@Josephgarcia</p>
       </div>
 
@@ -24,8 +24,8 @@ const CreatorNav = () => {
 
       {/* Social Icons */}
       <div className="flex space-x-4 text-gray-500">
-        <FaInstagram className="w-6 h-6 cursor-pointer hover:text-black" />
-        <FaTwitter className="w-6 h-6 cursor-pointer hover:text-black" />
+        <FaInstagram className="w-6 h-6 cursor-pointer hover:text-[#1C1C1C]" />
+        <FaTwitter className="w-6 h-6 cursor-pointer hover:text-[#1C1C1C]" />
       </div>
     </div>
   );

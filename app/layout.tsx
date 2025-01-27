@@ -18,11 +18,13 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className="h-full">
-      <body className="font-satoshi h-full">
+      <body className="font-satoshi h-full flex flex-col">
         <SessionProvider>
           <QueryProvider>
             <CreatorProvider>
-              <ClientSideHandler>{children}</ClientSideHandler>
+              <ClientSideHandler>
+                <main className="flex-grow">{children}</main>
+              </ClientSideHandler>
             </CreatorProvider>
           </QueryProvider>
         </SessionProvider>

@@ -16,7 +16,7 @@ const TextBlock: React.FC<TextBlockProps> = ({ title, text }) => {
       <h3 className="font-semibold font-satoshi text-sm text-text-color1 mb-2">
         {title}
       </h3>
-      <p className="font-satoshi text-black ml-4 text-sm whitespace-normal break-words">
+      <p className="font-satoshi text-[#1C1C1C] ml-4 text-sm whitespace-normal break-words">
         {text}
       </p>
     </div>

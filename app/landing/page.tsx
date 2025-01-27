@@ -3,11 +3,10 @@ import React from 'react';
 import Link from 'next/link';
 import Nav from '../../components/Nav';
 import GoToCard from '../../components/Card';
-import { BiSolidCircle } from 'react-icons/bi';
 import Lightbulb from '@/utils/icons/Lightbulb';
 import Coin from '@/utils/icons/Coin';
 import Gear from '@/utils/icons/Gear';
-import { FaInstagram } from 'react-icons/fa';
+import Footer from '@/components/Footer';
 
 interface landingPageProps {
   title?: string;
@@ -49,12 +48,15 @@ const LandingPage: React.FC<landingPageProps> = ({
           >
             {buttonText}
           </Link>
+          <p className="text-sm font-light font-satoshi text-white opacity-90">
+            (This beta version may have bugs—help us improve by using it.)
+          </p>
         </div>
       </section>
 
       {/* Card Section */}
       <section className="flex lg:flex-row md:flex-row flex-col items-center justify-center py-16 bg-[#E1F1F1]">
-        <h2 className="text-lg md:text-xl lg:text-xl lg:text-left md:text-left text-center mb-10 md:mb-0 lg:mb-0 font-satoshi mx-20 text-black w-80">
+        <h2 className="text-lg md:text-xl lg:text-xl lg:text-left md:text-left text-center mb-10 md:mb-0 lg:mb-0 font-satoshi mx-20 text-[#1C1C1C] w-80">
           Share your best memories with your followers and let them to live in
           your footsteps
         </h2>
@@ -75,11 +77,11 @@ const LandingPage: React.FC<landingPageProps> = ({
       {/* White Divider Section */}
       <section className="flex flex-col items-center justify-center py-24 bg-white">
         <h2 className="text-lg md:text-xl lg:text-2xl font-bold flex items-center gap-8">
-          <span className="text-text-color1">Easy</span>
-          <span className="text-gray-300">|</span>
-          <span className="text-text-color1">Profitable</span>
-          <span className="text-gray-300">|</span>
-          <span className="text-text-color1">Personalised</span>
+          <span className="text-[#1C1C1C]">Easy</span>
+          <span className="text-[#1C1C1C]">|</span>
+          <span className="text-[#1C1C1C]">Profitable</span>
+          <span className="text-[#1C1C1C]">|</span>
+          <span className="text-[#1C1C1C]">Personalised</span>
         </h2>
       </section>
 
@@ -106,7 +108,7 @@ const LandingPage: React.FC<landingPageProps> = ({
       </section>
 
       {/* White Section - A new way */}
-      <section className="flex flex-col items-center justify-center bg-white py-24 text-center text-black">
+      <section className="flex flex-col items-center justify-center bg-white py-24 text-center text-[#1C1C1C]">
         <h2 className="text-xl lg:text-3xl md:text-3xl font-satoshi font-semibold">
           A new way to interact with your followers
         </h2>
@@ -122,10 +124,10 @@ const LandingPage: React.FC<landingPageProps> = ({
           />
         </div>
         <div className="text-left max-w-md">
-          <h2 className="text-xl md:text-3xl font-satoshi font-semibold mb-4">
+          <h2 className="text-xl md:text-2xl font-satoshi font-semibold mb-4">
             Profitable
           </h2>
-          <p className="text-md md:text-xl lg:text-xl mb-6 font-light w-80">
+          <p className="text-sm md:text-lg lg:text-lg mb-6 font-light w-80">
             You set your own price. After Stripe processing fees and our 20%
             service cut, you keep the rest—no hidden costs.
           </p>
@@ -133,13 +135,13 @@ const LandingPage: React.FC<landingPageProps> = ({
       </section>
 
       {/* White Section - Join */}
-      <section className="flex flex-col items-center justify-center bg-white py-24 text-center text-black">
+      <section className="flex flex-col items-center justify-center bg-white py-24 text-center text-[#1C1C1C]">
         <h2 className="text-xl lg:text-3xl md:text-3xl font-satoshi font-semibold mb-10">
           Join a movement of creatives shaping the future of travel
         </h2>
         <Link
           href="/auth/signup"
-          className="px-6 py-3 font-semibold text-black font-satoshi bg-[#E1F1F1] rounded-full hover:scale-105 hover:shadow-lg transition transform active:scale-95 active:shadow-none duration-200"
+          className="px-6 py-3 font-semibold text-[#1C1C1C] font-satoshi bg-[#E1F1F1] rounded-full hover:scale-105 hover:shadow-lg transition transform active:scale-95 active:shadow-none duration-200"
         >
           Join
         </Link>
@@ -155,10 +157,10 @@ const LandingPage: React.FC<landingPageProps> = ({
           />
         </div>
         <div className="text-left max-w-md">
-          <h2 className="text-xl md:text-3xl font-satoshi font-semibold mb-4">
+          <h2 className="text-xl md:text-2xl font-satoshi font-semibold mb-4">
             Personalised
           </h2>
-          <p className="text-md md:text-xl lg:text-xl mb-6 font-light w-80">
+          <p className="text-sm md:text-lg lg:text-lg mb-6 font-light w-80">
             Fully personalize your trip itineraries and packages with a simple
             drag-and-drop interface, making it easy to tailor the experience to
             your audience.
@@ -166,47 +168,7 @@ const LandingPage: React.FC<landingPageProps> = ({
         </div>
       </section>
 
-      <footer className="flex flex-col items-center justify-center py-16 bg-[#2E334A] text-center text-gray-800">
-        <div className="sm:items-center sm:justify-between">
-          <h2 className="self-center logo_text whitespace-nowrap dark:text-white mb-4">
-            Inzider
-          </h2>
-
-          <ul className="flex flex-wrap items-center mb-6 text-sm font-medium text-gray-500 sm:mb-0 dark:text-gray-400">
-            <li>
-              <Link
-                href="/user-agreement"
-                className="hover:underline me-4 md:me-6"
-              >
-                User Agreement
-              </Link>
-            </li>
-            <li>
-              <Link
-                href="/privacy-policy"
-                className="hover:underline me-4 md:me-6"
-              >
-                Privacy Policy
-              </Link>
-            </li>
-            <li>
-              <Link href="/contact" className="hover:underline">
-                Contact
-              </Link>
-            </li>
-          </ul>
-        </div>
-        <hr className="my-6 border-gray-200 sm:mx-auto dark:border-gray-700 lg:my-8" />
-        <span className="block text-sm text-gray-500 sm:text-center dark:text-gray-400">
-          © 2025{' '}
-          <a href="https://flowbite.com/" className="hover:underline">
-            Inzider™
-          </a>
-          . All Rights Reserved.
-        </span>
-
-        <FaInstagram className="w-6 h-6 mt-2 text-gray-500 dark:text-gray-400 cursor-pointer" />
-      </footer>
+      <Footer />
     </div>
   );
 };

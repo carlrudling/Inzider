@@ -119,11 +119,11 @@ body {
 }
 
 .white_round_btn {
-  @apply rounded-full border hover:border-black mr-4 bg-white py-1.5 px-5 text-black transition-all hover:bg-black hover:text-white text-center text-sm font-satoshi font-medium flex items-center justify-center;
+  @apply rounded-full border hover:border-black mr-4 bg-white py-1.5 px-5 text-[#1C1C1C] transition-all hover:bg-black hover:text-white text-center text-sm font-satoshi font-medium flex items-center justify-center;
 }
 
 .black_round_btn {
-  @apply rounded-full border border-black hover:border-white mr-4 bg-black py-1.5 px-5 text-white transition-all hover:bg-white hover:text-black text-center text-sm font-satoshi font-medium flex items-center justify-center;
+  @apply rounded-full border border-black hover:border-white mr-4 bg-black py-1.5 px-5 text-white transition-all hover:bg-white hover:text-[#1C1C1C] text-center text-sm font-satoshi font-medium flex items-center justify-center;
 }
 
 .black_round_mobile_btn {
@@ -135,7 +135,7 @@ body {
 }
 
 .thoughts_btn {
-  @apply rounded mr-4 shadow hover:bg-custom-purple hover:text-white bg-custom-orange text-base py-1.5 px-5 text-black transition-all text-center font-satoshi font-medium flex items-center justify-center;
+  @apply rounded mr-4 shadow hover:bg-custom-purple hover:text-white bg-custom-orange text-base py-1.5 px-5 text-[#1C1C1C] transition-all text-center font-satoshi font-medium flex items-center justify-center;
 }
 
 .white_btn {
@@ -147,7 +147,7 @@ body {
 }
 
 .outline_btn {
-  @apply rounded-full border border-black bg-transparent py-1.5 px-5 text-black transition-all hover:bg-black hover:text-white text-center text-sm font-satoshi flex items-center justify-center;
+  @apply rounded-full border border-black bg-transparent py-1.5 px-5 text-[#1C1C1C] transition-all hover:bg-black hover:text-white text-center text-sm font-satoshi flex items-center justify-center;
 }
 
 .head_text {
@@ -191,7 +191,7 @@ body {
 }
 
 .logo_text_black {
-  @apply font-satoshi font-bold italic text-black text-lg;
+  @apply font-satoshi font-bold italic text-[#1C1C1C] text-lg;
 }
 
 .logo_text_light {
