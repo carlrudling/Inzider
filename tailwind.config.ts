@@ -5,8 +5,8 @@ const config: Config = {
     './pages/**/*.{js,ts,jsx,tsx,mdx}',
     './components/**/*.{js,ts,jsx,tsx,mdx}',
     './app/**/*.{js,ts,jsx,tsx,mdx}',
-    './public/**/*.html',
   ],
+  darkMode: 'class',
   theme: {
     extend: {
       keyframes: {
@@ -20,9 +20,6 @@ const config: Config = {
       },
       fontFamily: {
         satoshi: ['Satoshi', 'sans-serif'],
-        inter: ['Inter', 'sans-serif'],
-        poppins: ['Poppins', 'sans-serif'],
-        sourceSansPro: ['Source Sans Pro', 'sans-serif'],
       },
       colors: {
         background: 'var(--background)',
@@ -52,7 +49,6 @@ const config: Config = {
         cta: '#0066FF',
         'text-color1': '#9B9B9B',
         'text-color2': '#333333',
-
         'background-white': '#FBFBFB',
       },
       lineHeight: {
@@ -67,6 +63,6 @@ const config: Config = {
     },
   },
   plugins: [],
-};
+} satisfies Config;
 
 export default config;

@@ -22,17 +22,17 @@ const GoToHeader: React.FC<GoToHeaderProps> = ({
 
         {/* Title and Subtitle */}
         <div>
-          <h3 className="font-semibold text-lg text-text-color2 font-poppins">
+          <h3 className="font-semibold text-lg text-black font-satoshi">
             {title}
           </h3>
-          <p className="text-text-color1 italic font-sourceSansPro text-sm">
+          <p className="text-text-color1 italic font-satoshi text-sm">
             {subtitle}
           </p>
         </div>
       </div>
 
       {/* Page Number */}
-      <div className="self-end text-text-color1 font-sourceSansPro text-sm">
+      <div className="self-end text-text-color1 font-satoshi text-sm">
         {day ? (
           <span>{day}</span> // Display day if available
         ) : (

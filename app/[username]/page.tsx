@@ -2,6 +2,8 @@ import { notFound } from 'next/navigation';
 import CreatorLandingPage from '@/components/CreatorLandingPage';
 import dbConnect from '@/utils/database';
 import Creator from '@/models/Creator';
+import GoTo from '@/models/GoTo';
+import Trip from '@/models/Trip';
 
 async function getCreatorData(username: string) {
   await dbConnect();
@@ -11,6 +13,12 @@ async function getCreatorData(username: string) {
     return null;
   }
 
+  // Check for launched gotos and trips
+  const [gotos, trips] = await Promise.all([
+    GoTo.find({ creatorId: creator._id, status: 'launch' }).lean(),
+    Trip.find({ creatorId: creator._id, status: 'launch' }).lean(),
+  ]);
+
   return {
     backgroundImage: creator.backgroundImage,
     profileImage: creator.profileImage,
@@ -18,9 +26,11 @@ async function getCreatorData(username: string) {
     description: creator.description,
     instagramLink: creator.instagram,
     twitterLink: creator.xLink,
-    buttonColor: creator.buttonColor || creator.tripButtonColor,
-    buttonTextColor: creator.buttonTextColor || creator.tripButtonText,
+    buttonColor: creator.buttonColor,
+    buttonTextColor: creator.buttonTextColor,
     textColor: creator.textColor,
+    hasLaunchedGotos: gotos.length > 0,
+    hasLaunchedTrips: trips.length > 0,
   };
 }
 

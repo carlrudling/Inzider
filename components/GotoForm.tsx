@@ -959,13 +959,18 @@ const GoToForm: React.FC<GoToFormProps> = ({
                     <label className="block text-gray-700">
                       Upload images and/or videos
                     </label>
-                    <input
-                      type="file"
-                      multiple
-                      accept="image/*,video/*"
-                      onChange={handleSpotMediaUpload}
-                      className="bg-gray-200 text-gray-700 py-2 px-4 rounded-md w-full mt-2"
-                    />
+                    <div className="mt-2">
+                      <label className="cursor-pointer inline-block bg-gray-200 hover:bg-gray-300 text-gray-700 py-2 px-4 rounded-md transition-colors">
+                        <span>Choose files</span>
+                        <input
+                          type="file"
+                          multiple
+                          accept="image/*,video/*"
+                          onChange={handleSpotMediaUpload}
+                          className="hidden"
+                        />
+                      </label>
+                    </div>
                   </div>
 
                   <div className="flex flex-wrap mt-4 gap-4">
@@ -1011,9 +1016,6 @@ const GoToForm: React.FC<GoToFormProps> = ({
                   </div>
                 </div>
               )}
-              <li className="text-gray-500 cursor-pointer hover:text-gray-800">
-                Other
-              </li>
             </ul>
           </nav>
         </aside>

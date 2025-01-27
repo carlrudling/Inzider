@@ -35,4 +35,5 @@ export interface TripData {
   reviews?: any[];
   avgRating?: number;
   buyers?: any[];
+  status?: 'edit' | 'launch';
 }

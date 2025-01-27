@@ -14,15 +14,21 @@ import { useCreatorData } from '../../../provider/CreatorProvider';
 import { useSession } from 'next-auth/react';
 import { useSearchParams } from 'next/navigation';
 import StripeConnectButton from '@/components/StripeConnectButton';
+import dynamic from 'next/dynamic';
+
+const DynamicLoader = dynamic(() => import('@/components/Loader'), {
+  ssr: false,
+});
 
 const SettingsPage = () => {
   const { data: session } = useSession();
   const { creatorData, loading } = useCreatorData();
-  const [selectedTab, setSelectedTab] = useState('Profile');
   const searchParams = useSearchParams();
   const error = searchParams.get('error');
 
-  // Add new state for refund form
+  // All useState hooks grouped together
+  const [selectedTab, setSelectedTab] = useState('Profile');
+  const [mounted, setMounted] = useState(false);
   const [refundForm, setRefundForm] = useState({
     buyerEmail: '',
     contentType: '',
@@ -34,8 +40,6 @@ const SettingsPage = () => {
     message: string;
   }>({ type: null, message: '' });
   const [isProcessing, setIsProcessing] = useState(false);
-
-  // Add new state for refund history
   const [refundHistory, setRefundHistory] = useState<
     Array<{
       id: string;
@@ -49,32 +53,39 @@ const SettingsPage = () => {
     }>
   >([]);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
-
-  // Add state for profile management
-  const [profileImage, setProfileImage] = useState<string | null>(
-    creatorData?.profileImage || null
-  );
-  const [creatorName, setCreatorName] = useState(creatorData?.name || '');
-  const [username, setUsername] = useState(creatorData?.username || '');
-  const [creatorDescription, setCreatorDescription] = useState(
-    creatorData?.description || ''
-  );
-  const [instagramLink, setInstagramLink] = useState(
-    creatorData?.instagram || ''
-  );
-  const [xLink, setXLink] = useState(creatorData?.xLink || '');
-  const [tiktokLink, setTiktokLink] = useState(creatorData?.tiktok || '');
-  const [youtubeLink, setYoutubeLink] = useState(creatorData?.youtube || '');
-
-  // Email & password fields - update to show current email
-  const [currentEmail, setCurrentEmail] = useState(creatorData?.email || '');
+  const [profileImage, setProfileImage] = useState<string | null>(null);
+  const [creatorName, setCreatorName] = useState('');
+  const [username, setUsername] = useState('');
+  const [creatorDescription, setCreatorDescription] = useState('');
+  const [instagramLink, setInstagramLink] = useState('');
+  const [xLink, setXLink] = useState('');
+  const [tiktokLink, setTiktokLink] = useState('');
+  const [youtubeLink, setYoutubeLink] = useState('');
+  const [currentEmail, setCurrentEmail] = useState('');
   const [newEmail, setNewEmail] = useState('');
   const [confirmNewEmail, setConfirmNewEmail] = useState('');
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmNewPassword, setConfirmNewPassword] = useState('');
 
-  // Update state when creatorData changes
+  // Function declarations
+  const fetchRefundHistory = async () => {
+    if (!session?.user?.id) return;
+    setIsLoadingHistory(true);
+    try {
+      const response = await fetch(`/api/creators/${session.user.id}/refunds`);
+      if (response.ok) {
+        const data = await response.json();
+        setRefundHistory(data);
+      }
+    } catch (error) {
+      console.error('Error fetching refund history:', error);
+    } finally {
+      setIsLoadingHistory(false);
+    }
+  };
+
+  // All useEffect hooks grouped together
   useEffect(() => {
     if (creatorData) {
       setProfileImage(creatorData.profileImage || null);
@@ -88,6 +99,34 @@ const SettingsPage = () => {
       setCurrentEmail(creatorData.email || '');
     }
   }, [creatorData]);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    fetchRefundHistory();
+  }, [session?.user?.id]); // Added proper dependency
+
+  if (!mounted || loading) {
+    return mounted ? (
+      <DynamicLoader fullScreen={false} />
+    ) : (
+      <div className="flex h-screen items-center justify-center">
+        <div className="text-gray-600">Loading...</div>
+      </div>
+    );
+  }
+
+  if (!creatorData) {
+    return mounted ? (
+      <DynamicLoader fullScreen={false} />
+    ) : (
+      <div className="flex h-screen items-center justify-center">
+        <div className="text-gray-600">Loading...</div>
+      </div>
+    );
+  }
 
   // Handle refund form input changes
   const handleRefundInputChange = (
@@ -189,26 +228,6 @@ const SettingsPage = () => {
       setIsProcessing(false);
     }
   };
-
-  // Fetch refund history
-  const fetchRefundHistory = async () => {
-    setIsLoadingHistory(true);
-    try {
-      const response = await fetch('/api/refunds');
-      if (!response.ok) throw new Error('Failed to fetch refund history');
-      const data = await response.json();
-      setRefundHistory(data);
-    } catch (error) {
-      console.error('Error fetching refund history:', error);
-    } finally {
-      setIsLoadingHistory(false);
-    }
-  };
-
-  // Fetch refund history on component mount
-  useEffect(() => {
-    fetchRefundHistory();
-  }, []);
 
   // Upload the file to R2
   const handleProfileImageUpload = async (file: File) => {
@@ -338,22 +357,6 @@ const SettingsPage = () => {
       console.error('Error updating profile:', error);
     }
   };
-
-  if (loading) {
-    return (
-      <div className="flex h-screen bg-gray-100 items-center justify-center">
-        Loading...
-      </div>
-    );
-  }
-
-  if (!creatorData) {
-    return (
-      <div className="flex h-screen bg-gray-100 items-center justify-center">
-        No creator data found.
-      </div>
-    );
-  }
 
   return (
     <div className="flex h-screen bg-gray-100">
@@ -518,115 +521,31 @@ const SettingsPage = () => {
               </div>
             </section>
 
-            {/* Email & Password Section */}
-            <section>
-              <h2 className="text-lg font-semibold mb-4">Email & Password</h2>
-              <div className="grid grid-cols-3 gap-6">
-                <div>
-                  <label className="block text-sm text-gray-700">
-                    Current email
-                  </label>
-                  <input
-                    type="text"
-                    value={currentEmail}
-                    disabled
-                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm bg-gray-50"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm text-gray-700">
-                    New email
-                  </label>
-                  <input
-                    type="email"
-                    value={newEmail}
-                    onChange={(e) => setNewEmail(e.target.value)}
-                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm text-gray-700">
-                    Confirm new email
-                  </label>
-                  <input
-                    type="email"
-                    value={confirmNewEmail}
-                    onChange={(e) => setConfirmNewEmail(e.target.value)}
-                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
-                  />
-                </div>
-                <button
-                  onClick={handleEmailChange}
-                  className="col-span-3 bg-blue-500 text-white py-2 w-40 rounded-md"
-                >
-                  Update Email
-                </button>
-                <div>
-                  <label className="block text-sm text-gray-700">
-                    Current password
-                  </label>
-                  <input
-                    type="password"
-                    value={currentPassword}
-                    onChange={(e) => setCurrentPassword(e.target.value)}
-                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm text-gray-700">
-                    New password
-                  </label>
-                  <input
-                    type="password"
-                    value={newPassword}
-                    onChange={(e) => setNewPassword(e.target.value)}
-                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm text-gray-700">
-                    Confirm new password
-                  </label>
-                  <input
-                    type="password"
-                    value={confirmNewPassword}
-                    onChange={(e) => setConfirmNewPassword(e.target.value)}
-                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
-                  />
-                </div>
-                <button
-                  onClick={handlePasswordChange}
-                  className="col-span-3 bg-green-500 text-white py-2 w-40 mb-8 rounded-md"
-                >
-                  Update Password
-                </button>
-              </div>
-              {/* Save Button */}
-              <button
-                onClick={handleSaveChanges}
-                className="fixed bottom-4 right-4 bg-blue-500 text-white px-6 py-3 rounded-full shadow-lg hover:bg-blue-600 transition"
-              >
-                Save Changes
-              </button>
-            </section>
+            <button
+              onClick={handleSaveChanges}
+              className="fixed bottom-4 right-4 bg-blue-500 text-white px-6 py-3 rounded-full shadow-lg hover:bg-blue-600 transition"
+            >
+              Save Changes
+            </button>
           </>
         )}
 
         {selectedTab === 'Connect' && (
           <>
             <h1 className="text-2xl font-bold mb-4">Connect</h1>
-            <p className="text-text-color2 mb-6">
+            <p className="text-black mb-6">
               You can self choose how you share your packages with your
               customers, but we recommend sharing your landing page in your
               social media bios. If you already have a link service and would
-              rather set up buttons to your GoTos or trips, you can do that by
-              copying the URLs to the browseTrips page and browseGoTos page.
+              rather set up buttons there to your GoTos or trips, you can do
+              that by copying the URLs to the browseTrips page and browseGoTos
+              page.
             </p>
 
             <div className="space-y-4">
               {/* Landing Page */}
               <div>
-                <label className="block text-sm font-medium text-text-color2 italic mb-2">
+                <label className="block text-sm font-medium text-black italic mb-2">
                   Landingpage
                 </label>
                 <div className="flex items-center bg-gray-100 border border-gray-300 rounded-md p-2">
@@ -642,7 +561,7 @@ const SettingsPage = () => {
                         `www.inzider.io/${creatorData?.username || ''}`
                       )
                     }
-                    className="ml-2 text-text-color2 hover:text-blue-700 focus:outline-none"
+                    className="ml-2 text-black hover:text-blue-700 focus:outline-none"
                   >
                     <LuCopy />
                   </button>
@@ -651,7 +570,7 @@ const SettingsPage = () => {
 
               {/* BrowseTrips Page */}
               <div>
-                <label className="block text-sm font-medium text-text-color2 italic mb-2">
+                <label className="block text-sm font-medium text-black italic mb-2">
                   BrowseTrips page
                 </label>
                 <div className="flex items-center bg-gray-100 border border-gray-300 rounded-md p-2">
@@ -669,7 +588,7 @@ const SettingsPage = () => {
                         `www.inzider.io/${creatorData?.username || ''}/trips`
                       )
                     }
-                    className="ml-2 text-text-color2 hover:text-blue-700 focus:outline-none"
+                    className="ml-2 text-black hover:text-blue-700 focus:outline-none"
                   >
                     <LuCopy />
                   </button>
@@ -678,7 +597,7 @@ const SettingsPage = () => {
 
               {/* BrowseGoTos Page */}
               <div>
-                <label className="block text-sm font-medium text-text-color2 italic mb-2">
+                <label className="block text-sm font-medium text-black italic mb-2">
                   BrowseGoTos page
                 </label>
                 <div className="flex items-center bg-gray-100 border border-gray-300 rounded-md p-2">
@@ -696,7 +615,7 @@ const SettingsPage = () => {
                         `www.inzider.io/${creatorData?.username || ''}/gotos`
                       )
                     }
-                    className="ml-2 text-text-color2 hover:text-blue-700 focus:outline-none"
+                    className="ml-2 text-black hover:text-blue-700 focus:outline-none"
                   >
                     <LuCopy />
                   </button>
@@ -710,89 +629,16 @@ const SettingsPage = () => {
           <>
             <h1 className="text-2xl font-bold mb-4">Support</h1>
             <p className="text-gray-600 mb-6">
-              We're a small team dedicated to improving your experience, and
-              we're currently focused on development. As a result, our support
-              response times may be a bit slower. For faster assistance, please
-              check out our tutorial videos on our YouTube channel!
-            </p>
-            <a
-              href="https://youtube.com"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-blue-500 hover:underline mb-8 inline-block"
-            >
-              Link to youtube channel
-            </a>
-
-            <p className="text-gray-600 mt-6 mb-4">
-              Didn't find your answer? Then write to our support mail and we
-              will respond as quick as possible.
-            </p>
-
-            <form className="space-y-4">
-              {/* Topic Field */}
-              <div>
-                <label
-                  htmlFor="topic"
-                  className="block text-sm font-medium text-gray-700 mb-1"
-                >
-                  Topic
-                </label>
-                <div className="flex items-center border border-gray-300 rounded-md bg-white p-2">
-                  <input
-                    type="text"
-                    id="topic"
-                    name="topic"
-                    className="w-full focus:outline-none bg-transparent"
-                    placeholder="Errors when upload"
-                  />
-                  <button
-                    type="button"
-                    className="text-gray-500 hover:text-gray-700 focus:outline-none"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      strokeWidth={1.5}
-                      stroke="currentColor"
-                      className="w-5 h-5"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M12 5v14m7-7H5"
-                      />
-                    </svg>
-                  </button>
-                </div>
-              </div>
-
-              {/* Description Field */}
-              <div>
-                <label
-                  htmlFor="description"
-                  className="block text-sm font-medium text-gray-700 mb-1"
-                >
-                  Description
-                </label>
-                <textarea
-                  id="description"
-                  name="description"
-                  rows={4}
-                  className="w-full border border-gray-300 rounded-md focus:outline-none bg-white p-2"
-                  placeholder="Describe your issue here..."
-                />
-              </div>
-
-              {/* Send Button */}
-              <button
-                type="submit"
-                className="w-full bg-purple-500 text-white py-2 rounded-md font-medium hover:bg-purple-600 transition"
+              If you run into any issues, please{' '}
+              <a
+                href="mailto:support.inzider@gmail.com"
+                className="text-purple-600 hover:text-purple-700 underline"
               >
-                Send
-              </button>
-            </form>
+                send an email to support.inzider@gmail.com
+              </a>{' '}
+              and we will respond as quickly as possible. Please keep in mind
+              that this is a beta version and may include some bugs.
+            </p>
           </>
         )}
 

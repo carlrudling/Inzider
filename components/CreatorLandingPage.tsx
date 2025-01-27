@@ -14,6 +14,8 @@ interface CreatorLandingPageProps {
   buttonTextColor?: string;
   textColor?: string; // New prop
   username?: string; // Add username prop
+  hasLaunchedGotos?: boolean;
+  hasLaunchedTrips?: boolean;
 }
 
 const CreatorLandingPage: React.FC<CreatorLandingPageProps> = ({
@@ -27,6 +29,8 @@ const CreatorLandingPage: React.FC<CreatorLandingPageProps> = ({
   buttonTextColor = '#FFFFFF',
   textColor = '#FFFFFF', // Default text color
   username,
+  hasLaunchedGotos = false,
+  hasLaunchedTrips = false,
 }) => {
   const router = useRouter();
 
@@ -80,34 +84,38 @@ const CreatorLandingPage: React.FC<CreatorLandingPageProps> = ({
         </div>
 
         {/* Creator Name */}
-        <p style={textStyle} className="font-poppins font-semibold text-lg">
+        <p style={textStyle} className="font-satoshi font-semibold text-lg">
           {creatorName}
         </p>
 
         {/* Description */}
         <p
           style={textStyle}
-          className="font-sourceSansPro text-base text-center px-4 mb-8 max-w-xs md:max-w-md"
+          className="font-satoshi text-base text-center px-4 mb-8 max-w-xs md:max-w-md"
         >
           {description}
         </p>
 
         {/* Buttons */}
         <div className="flex flex-col items-center space-y-4 w-full">
-          <button
-            style={buttonStyle}
-            className="font-poppins py-4 px-6 rounded-lg font-semibold w-full"
-            onClick={() => handleButtonClick('showGoToCards')}
-          >
-            My Go-tos
-          </button>
-          <button
-            style={buttonStyle}
-            className="font-poppins py-4 px-6 rounded-lg font-semibold w-full"
-            onClick={() => handleButtonClick('showTripCards')}
-          >
-            My Trips
-          </button>
+          {hasLaunchedGotos && (
+            <button
+              style={buttonStyle}
+              className="font-satoshi py-4 px-6 rounded-lg font-semibold w-full"
+              onClick={() => handleButtonClick('showGoToCards')}
+            >
+              My Go-tos
+            </button>
+          )}
+          {hasLaunchedTrips && (
+            <button
+              style={buttonStyle}
+              className="font-satoshi py-4 px-6 rounded-lg font-semibold w-full"
+              onClick={() => handleButtonClick('showTripCards')}
+            >
+              My Trips
+            </button>
+          )}
         </div>
       </div>
 

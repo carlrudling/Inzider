@@ -39,11 +39,11 @@ const AboutGoToPage = () => {
             {/* Content aligned to the left with margin */}
             <div className="flex flex-row justify-between items-center px-4">
               {/* Heading and Price */}
-              <h3 className="sm:text-lg text-base font-semibold font-poppins text-black mb-2 text-left">
+              <h3 className="sm:text-lg text-base font-semibold font-satoshi text-black mb-2 text-left">
                 Drinks in San Sebastian
               </h3>
               {/* 'Bought' Badge */}
-              <div className="bg-custom-white-blue text-custom-blue py-1 px-3 text-xs font-semibold font-poppins rounded-full">
+              <div className="bg-custom-white-blue text-custom-blue py-1 px-3 text-xs font-semibold font-satoshi rounded-full">
                 $49.99
               </div>
             </div>
@@ -70,7 +70,7 @@ const AboutGoToPage = () => {
             </p>
 
             {/* About section */}
-            <p className="px-4 text-xs font-poppins font-semibold text-text-color1 mt-4">
+            <p className="px-4 text-xs font-satoshi font-semibold text-text-color1 mt-4">
               About
             </p>
 
@@ -100,12 +100,12 @@ const AboutGoToPage = () => {
             {/* Button and Logo */}
             <div className="relative w-full flex justify-end items-center my-4 pr-6">
               {/* Logo Text */}
-              <span className="absolute left-1/2 transform -translate-x-1/2 font-poppins font-bold italic text-text-color1 text-lg">
+              <span className="absolute left-1/2 transform -translate-x-1/2 font-satoshi font-bold italic text-text-color1 text-lg">
                 Inzider
               </span>
 
               {/* Button */}
-              <button className="bg-custom-purple py-2 px-4 text-white font-poppins rounded-md transition transform active:scale-95 active:shadow-none duration-200 whitespace-nowrap overflow-hidden text-ellipsis">
+              <button className="bg-custom-purple py-2 px-4 text-white font-satoshi rounded-md transition transform active:scale-95 active:shadow-none duration-200 whitespace-nowrap overflow-hidden text-ellipsis">
                 Get it!
               </button>
             </div>

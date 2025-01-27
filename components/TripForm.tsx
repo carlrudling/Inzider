@@ -773,13 +773,18 @@ const TripForm: React.FC<TripFormProps> = ({
                     <label className="block text-gray-700">
                       Upload images and/or videos
                     </label>
-                    <input
-                      type="file"
-                      multiple
-                      accept="image/*,video/*"
-                      onChange={handleAboutPageMediaUpload}
-                      className="bg-gray-200 text-gray-700 py-2 px-4 rounded-md w-full mt-2"
-                    />
+                    <div className="mt-2">
+                      <label className="cursor-pointer inline-block bg-gray-200 hover:bg-gray-300 text-gray-700 py-2 px-4 rounded-md transition-colors">
+                        <span>Choose files</span>
+                        <input
+                          type="file"
+                          multiple
+                          accept="image/*,video/*"
+                          onChange={handleAboutPageMediaUpload}
+                          className="hidden"
+                        />
+                      </label>
+                    </div>
                   </div>
 
                   <div className="flex flex-wrap mt-4 gap-4">
@@ -828,6 +833,29 @@ const TripForm: React.FC<TripFormProps> = ({
               </li>
               {showTripSpotsFields && (
                 <div className="mt-2 space-y-4 pl-4">
+                  {/* Day Navigation */}
+                  <div className="flex flex-col items-center gap-4">
+                    <div className="flex items-center gap-4">
+                      <button
+                        onClick={goToPreviousDay}
+                        className="text-gray-400"
+                      >
+                        <FaChevronLeft className="h-6 w-6" />
+                      </button>
+
+                      {/* Display Current Day */}
+                      <span className="italic text-base font-semibold">
+                        {days[activeDayIndex]?.date
+                          ? formatDate(days[activeDayIndex].date)
+                          : 'Select a Date'}
+                      </span>
+
+                      <button onClick={goToNextDay} className="text-gray-400">
+                        <FaChevronRight className="h-6 w-6" />
+                      </button>
+                    </div>
+                  </div>
+
                   <label className="block">
                     <span className="text-gray-700">Name of the spot</span>
                     <input
@@ -919,13 +947,18 @@ const TripForm: React.FC<TripFormProps> = ({
                     <label className="block text-gray-700">
                       Upload images and/or videos
                     </label>
-                    <input
-                      type="file"
-                      multiple
-                      accept="image/*,video/*"
-                      onChange={handleSpotMediaUpload}
-                      className="bg-gray-200 text-gray-700 py-2 px-4 rounded-md w-full mt-2"
-                    />
+                    <div className="mt-2">
+                      <label className="cursor-pointer inline-block bg-gray-200 hover:bg-gray-300 text-gray-700 py-2 px-4 rounded-md transition-colors">
+                        <span>Choose files</span>
+                        <input
+                          type="file"
+                          multiple
+                          accept="image/*,video/*"
+                          onChange={handleSpotMediaUpload}
+                          className="hidden"
+                        />
+                      </label>
+                    </div>
                   </div>
 
                   {/* Render Spot Slides Using SlideItem with Drag-and-Drop */}
@@ -969,33 +1002,9 @@ const TripForm: React.FC<TripFormProps> = ({
                         <GoPlusCircle className="h-6 w-6" />
                       </button>
                     </div>
-
-                    {/* Day Navigation */}
-                    <div className="flex items-center gap-4">
-                      <button
-                        onClick={goToPreviousDay}
-                        className="text-gray-400"
-                      >
-                        <FaChevronLeft className="h-6 w-6" />
-                      </button>
-
-                      {/* Display Current Day */}
-                      <span className="italic text-base font-semibold">
-                        {days[activeDayIndex]?.date
-                          ? formatDate(days[activeDayIndex].date)
-                          : 'Select a Date'}
-                      </span>
-
-                      <button onClick={goToNextDay} className="text-gray-400">
-                        <FaChevronRight className="h-6 w-6" />
-                      </button>
-                    </div>
                   </div>
                 </div>
               )}
-              <li className="text-gray-500 cursor-pointer hover:text-gray-800">
-                Other
-              </li>
             </ul>
           </nav>
         </aside>

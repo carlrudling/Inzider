@@ -42,7 +42,7 @@ const ReviewsList: React.FC<ReviewsListProps> = ({ reviews = [] }) => {
   return (
     <div className="w-full bg-white rounded-lg shadow-md border border-gray-200">
       <div className="p-4">
-        <h3 className="font-semibold font-poppins text-sm text-text-color1 mb-4">
+        <h3 className="font-semibold font-satoshi text-sm text-text-color1 mb-4">
           Reviews ({reviews.length})
         </h3>
         <div className="space-y-4">

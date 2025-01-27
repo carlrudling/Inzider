@@ -13,22 +13,35 @@ import Loader from '@/components/Loader';
 
 const HomePage = () => {
   const { creatorData, loading } = useCreatorData();
-
+  const scrollContainerRef1 = useRef<HTMLDivElement>(null);
+  const scrollContainerRef2 = useRef<HTMLDivElement>(null);
   const [goTos, setGoTos] = useState<any[]>([]);
   const [trips, setTrips] = useState<any[]>([]);
-
-  // First section scroll handling
-  const scrollContainerRef1 = useRef<HTMLDivElement>(null);
+  const [isClient, setIsClient] = useState(false);
   const [showLeftButton1, setShowLeftButton1] = useState(false);
   const [showRightButton1, setShowRightButton1] = useState(true);
+  const [showLeftButton2, setShowLeftButton2] = useState(false);
+  const [showRightButton2, setShowRightButton2] = useState(true);
+
+  // Initialize client-side rendering
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const handleScroll1 = () => {
-    if (scrollContainerRef1.current) {
-      const { scrollLeft, scrollWidth, clientWidth } =
-        scrollContainerRef1.current;
-      setShowLeftButton1(scrollLeft > 0);
-      setShowRightButton1(scrollLeft < scrollWidth - clientWidth);
-    }
+    if (!isClient || !scrollContainerRef1.current) return;
+    const { scrollLeft, scrollWidth, clientWidth } =
+      scrollContainerRef1.current;
+    setShowLeftButton1(scrollLeft > 0);
+    setShowRightButton1(scrollLeft < scrollWidth - clientWidth);
+  };
+
+  const handleScroll2 = () => {
+    if (!isClient || !scrollContainerRef2.current) return;
+    const { scrollLeft, scrollWidth, clientWidth } =
+      scrollContainerRef2.current;
+    setShowLeftButton2(scrollLeft > 0);
+    setShowRightButton2(scrollLeft < scrollWidth - clientWidth);
   };
 
   const scrollLeft1 = () => {
@@ -46,20 +59,6 @@ const HomePage = () => {
     }
   };
 
-  // Second section scroll handling
-  const scrollContainerRef2 = useRef<HTMLDivElement>(null);
-  const [showLeftButton2, setShowLeftButton2] = useState(false);
-  const [showRightButton2, setShowRightButton2] = useState(true);
-
-  const handleScroll2 = () => {
-    if (scrollContainerRef2.current) {
-      const { scrollLeft, scrollWidth, clientWidth } =
-        scrollContainerRef2.current;
-      setShowLeftButton2(scrollLeft > 0);
-      setShowRightButton2(scrollLeft < scrollWidth - clientWidth);
-    }
-  };
-
   const scrollLeft2 = () => {
     if (scrollContainerRef2.current) {
       scrollContainerRef2.current.scrollBy({ left: -300, behavior: 'smooth' });
@@ -73,6 +72,7 @@ const HomePage = () => {
   };
 
   useEffect(() => {
+    if (!isClient) return;
     // Initial check on mount for both sections
     handleScroll1();
     handleScroll2();
@@ -88,16 +88,15 @@ const HomePage = () => {
       scrollContainer1?.removeEventListener('scroll', handleScroll1);
       scrollContainer2?.removeEventListener('scroll', handleScroll2);
     };
-  }, []);
-
-  // Fetch Trips and Gotos by their IDs once creatorData is loaded
+  }, [isClient]);
 
   useEffect(() => {
     const fetchGoTos = async () => {
+      if (!creatorData) return;
       const query =
-        (creatorData?.myGotos?.length ?? 0) > 0
-          ? `ids=${creatorData?.myGotos.join(',')}`
-          : `creatorId=${creatorData?._id}`;
+        (creatorData.myGotos?.length ?? 0) > 0
+          ? `ids=${creatorData.myGotos.join(',')}`
+          : `creatorId=${creatorData._id}`;
 
       const res = await fetch(`/api/gotos?${query}`, {
         method: 'GET',
@@ -109,10 +108,11 @@ const HomePage = () => {
     };
 
     const fetchTrips = async () => {
+      if (!creatorData) return;
       const query =
-        (creatorData?.myTrips?.length ?? 0) > 0
-          ? `ids=${creatorData?.myTrips.join(',')}`
-          : `creatorId=${creatorData?._id}`;
+        (creatorData.myTrips?.length ?? 0) > 0
+          ? `ids=${creatorData.myTrips.join(',')}`
+          : `creatorId=${creatorData._id}`;
 
       const res = await fetch(`/api/trips?${query}`, {
         method: 'GET',
@@ -123,15 +123,16 @@ const HomePage = () => {
       setTrips(data);
     };
 
-    if (creatorData) {
-      fetchGoTos();
-      fetchTrips();
-    }
-  }, [creatorData?.myGotos, creatorData?.myTrips, creatorData?._id]);
+    fetchGoTos();
+    fetchTrips();
+  }, [creatorData]);
 
-  // Now handle conditions AFTER all hooks are defined
-  if (loading) {
-    return <Loader />;
+  if (!isClient || loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader />
+      </div>
+    );
   }
 
   if (!creatorData) {
@@ -157,36 +158,7 @@ const HomePage = () => {
                 className="object-cover w-full h-full"
               />
             </div>
-            <h2 className="text-xl font-poppins">{creatorData.name}</h2>
-            <div className="flex space-x-10 mt-4">
-              {/* Packages Section */}
-              <div className="flex flex-col items-center text-center">
-                {/* Icon with Background */}
-                <div className="bg-custom-white-red rounded-lg mb-2">
-                  <BiStats className="w-10 h-10 p-2 text-custom-red" />
-                </div>
-                {/* Number and Label */}
-                <span className="text-custom-red text-lg font-semibold">
-                  17
-                </span>
-                <p className="text-text-color2 font-semibold text-xs">
-                  packages
-                </p>
-              </div>
-
-              {/* Buyers Section */}
-              <div className="flex flex-col items-center text-center">
-                {/* Icon with Background */}
-                <div className=" rounded-lg mb-2 bg-custom-white-purple">
-                  <IoPeople className="w-10 h-10 p-2 text-custom-purple" />
-                </div>
-                {/* Number and Label */}
-                <span className="text-lg font-semibold text-custom-purple">
-                  347
-                </span>
-                <p className="text-text-color2 font-semibold text-xs">Buyers</p>
-              </div>
-            </div>
+            <h2 className="mt-10 text-xl font-satoshi">{creatorData.name}</h2>
           </div>
 
           {/* Right Section with Cards */}
@@ -258,7 +230,7 @@ const HomePage = () => {
       </section>
       {/* First scrollable section */}
       <section className="my-12">
-        <h2 className="text-2xl pt-10 font-poppins italic mb-6 ml-10 text-text-color1">
+        <h2 className="text-2xl pt-10 font-satoshi italic mb-6 ml-10 text-text-color1">
           My Go-Tos
         </h2>
         <div className="relative">
@@ -316,7 +288,7 @@ const HomePage = () => {
       </section>
       {/* Second scrollable section */}
       <section className="my-12">
-        <h2 className="text-2xl pt-10 font-poppins italic mb-6 ml-10 text-text-color1">
+        <h2 className="text-2xl pt-10 font-satoshi italic mb-6 ml-10 text-text-color1">
           My Trips
         </h2>
         <div className="relative">

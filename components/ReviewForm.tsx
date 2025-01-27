@@ -48,7 +48,7 @@ const ReviewForm: React.FC<ReviewFormProps> = ({ onSubmit }) => {
 
   return (
     <div className="bg-white p-4 w-full rounded-lg shadow-md border border-gray-200">
-      <h3 className="font-semibold font-poppins text-sm text-text-color1 mb-4">
+      <h3 className="font-semibold font-satoshi text-sm text-text-color1 mb-4">
         Write a Review
       </h3>
 
