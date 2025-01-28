@@ -65,10 +65,12 @@ const LandingPage: React.FC<landingPageProps> = ({
             title="Drinks in San Sebastian"
             description="Having gone out in San Sebastian for most of my adult life I have now made a list of all the best spots that you don't want to miss."
             imageUrl="/images/drinksSansebastian.jpg"
-            country="Portugal"
+            country="Spain"
             tag="Preview"
             stars={4}
-            navigateTo="/about-goto"
+            price={19.99}
+            currency="EUR"
+            navigateTo="/example/gotos/drinks-in-san-sebastian"
           />
           <p className="max-w-3xl mb-6 font-light italic">Preview</p>
         </div>

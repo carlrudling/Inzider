@@ -1,5 +1,5 @@
 'use client';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { CgProfile } from 'react-icons/cg';
 import { LuLink } from 'react-icons/lu';
 import { FaMoneyCheck } from 'react-icons/fa';
@@ -20,7 +20,7 @@ const DynamicLoader = dynamic(() => import('@/components/Loader'), {
   ssr: false,
 });
 
-const SettingsPage = () => {
+const SettingsContent = () => {
   const { data: session } = useSession();
   const { creatorData, loading } = useCreatorData();
   const searchParams = useSearchParams();
@@ -931,6 +931,14 @@ const SettingsPage = () => {
         )}
       </main>
     </div>
+  );
+};
+
+const SettingsPage = () => {
+  return (
+    <Suspense fallback={<div>Loading settings...</div>}>
+      <SettingsContent />
+    </Suspense>
   );
 };
 

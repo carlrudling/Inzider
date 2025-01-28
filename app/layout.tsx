@@ -9,6 +9,15 @@ import QueryProvider from '@/provider/QueryProvider';
 export const metadata: Metadata = {
   title: 'Inzider',
   description: 'Travel like a local',
+  icons: {
+    icon: '/icon.svg',
+    shortcut: '/icon.svg',
+    apple: '/icon.svg',
+    other: {
+      rel: 'apple-touch-icon-precomposed',
+      url: '/icon.svg',
+    },
+  },
 };
 
 export default function RootLayout({
