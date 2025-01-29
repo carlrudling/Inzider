@@ -47,7 +47,7 @@ export default async function CreatorTripsPage({
       }}
     >
       <div className="max-w-md mx-auto px-4">
-        <h1 className="text-3xl font-satoshi italic text-white text-center mb-8">
+        <h1 className="text-xl font-satoshi font-light text-white text-center mb-8">
           My Trips
         </h1>
 

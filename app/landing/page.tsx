@@ -70,7 +70,7 @@ const LandingPage: React.FC<landingPageProps> = ({
             stars={4}
             price={19.99}
             currency="EUR"
-            navigateTo="/example/gotos/drinks-in-san-sebastian"
+            navigateTo="/previewCreator/gotos/679a04af91f881a0ed4a01a5"
           />
           <p className="max-w-3xl mb-6 font-light italic">Preview</p>
         </div>

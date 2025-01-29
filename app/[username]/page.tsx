@@ -35,15 +35,15 @@ async function getCreatorData(username: string) {
 }
 
 export default async function CreatorPage({
-  params: { username },
+  params,
 }: {
   params: { username: string };
 }) {
-  const creatorData = await getCreatorData(username);
+  const creatorData = await getCreatorData(params.username);
 
   if (!creatorData) {
     notFound();
   }
 
-  return <CreatorLandingPage {...creatorData} username={username} />;
+  return <CreatorLandingPage {...creatorData} username={params.username} />;
 }
