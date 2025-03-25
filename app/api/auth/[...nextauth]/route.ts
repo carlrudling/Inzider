@@ -5,7 +5,7 @@ import bcrypt from 'bcryptjs';
 import { Types } from 'mongoose';
 import Creator, { ICreator } from '@/models/Creator';
 import User, { IUser } from '@/models/User';
-import dbConnect from '@/utils/database';
+import dbConnect from '@/lib/dbConnect';
 
 declare module 'next-auth' {
   interface Session {
@@ -283,9 +283,9 @@ export const authOptions: NextAuthOptions = {
         console.log('Google sign-in JWT callback:', { account, profile });
 
         // Check what accounts exist for this email
-        const existingCreator = await Creator.findOne({
+        const existingCreator = (await Creator.findOne({
           email: profile.email,
-        });
+        }).lean()) as ICreator;
         const existingUser = await User.findOne({ email: profile.email });
 
         const hasCreatorAccount = !!existingCreator;
@@ -417,7 +417,9 @@ export const authOptions: NextAuthOptions = {
 
       if (account?.provider === 'google') {
         // Check if user exists in either collection
-        const existingCreator = await Creator.findOne({ email: profile.email });
+        const existingCreator = (await Creator.findOne({
+          email: profile.email,
+        }).lean()) as ICreator;
         const existingUser = await User.findOne({ email: profile.email });
 
         // Set up the user object with the correct properties

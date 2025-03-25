@@ -1,7 +1,8 @@
 'use client';
 import React from 'react';
-import { FaInstagram, FaTwitter } from 'react-icons/fa';
+import { FaInstagram } from 'react-icons/fa';
 import { useRouter } from 'next/navigation';
+import { PiXLogo } from 'react-icons/pi';
 
 interface CreatorLandingPageProps {
   backgroundImage?: string;
@@ -127,7 +128,7 @@ const CreatorLandingPage: React.FC<CreatorLandingPageProps> = ({
             <FaInstagram className="h-6 w-6 cursor-pointer" color={textColor} />
           </button>
           <button onClick={() => handleButtonClick('twitter')}>
-            <FaTwitter className="h-6 w-6 cursor-pointer" color={textColor} />
+            <PiXLogo className="h-6 w-6 cursor-pointer" color={textColor} />
           </button>
         </div>
         {/* Logo */}

@@ -3,6 +3,8 @@ import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import AboutPageComponent from '@/components/AboutPageComponent';
 import TripDayPage from '@/components/TripDayPage';
+import AccessModal from '@/components/AccessModal';
+import PaymentForm from '@/components/PaymentForm';
 
 interface TripPageContentProps {
   initialData: any;
@@ -19,6 +21,8 @@ export default function TripPageContent({
   const { data: session } = useSession();
   const [hasPurchased, setHasPurchased] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [showAccessModal, setShowAccessModal] = useState(false);
+  const [showPayment, setShowPayment] = useState(false);
 
   useEffect(() => {
     const checkPurchase = async () => {
@@ -43,6 +47,17 @@ export default function TripPageContent({
 
     checkPurchase();
   }, [session, id]);
+
+  const handleStartPurchase = () => {
+    console.log('Starting purchase flow in TripPageContent');
+    // First close the access modal
+    setShowAccessModal(false);
+    // Then show the payment form after a short delay
+    setTimeout(() => {
+      setShowPayment(true);
+      console.log('Payment form shown in TripPageContent');
+    }, 100);
+  };
 
   if (loading) {
     return <div>Loading...</div>;
@@ -120,12 +135,62 @@ export default function TripPageContent({
             console.log('Already purchased, showing details');
             setShowDetails(true);
           } else {
-            console.log('Not purchased, waiting for payment');
-            // Don't set showDetails here, wait for successful payment
+            setShowAccessModal(true);
           }
         }}
         hasPurchased={hasPurchased}
       />
+
+      <AccessModal
+        isOpen={showAccessModal}
+        onClose={() => setShowAccessModal(false)}
+        packageId={id}
+        packageType="Trip"
+        price={initialData.price}
+        currency={initialData.currency}
+        onStartPurchase={handleStartPurchase}
+      />
+
+      {/* Payment Form */}
+      {showPayment && (
+        <div
+          className="fixed inset-0 z-[100]"
+          onClick={() => setShowPayment(false)}
+        >
+          <div className="absolute inset-0 bg-black bg-opacity-50" />
+          <div className="relative z-[101] flex items-center justify-center min-h-screen p-4">
+            <div
+              className="bg-white rounded-lg shadow-xl max-w-md w-full p-6"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex justify-end mb-4">
+                <button
+                  onClick={() => setShowPayment(false)}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  ✕
+                </button>
+              </div>
+              <div className="relative">
+                <PaymentForm
+                  key={`payment-form-${id}`}
+                  contentId={id}
+                  contentType="trip"
+                  onSuccess={() => {
+                    setShowPayment(false);
+                    setHasPurchased(true);
+                    setShowDetails(true);
+                  }}
+                  onError={(error) => {
+                    console.error('Payment error:', error);
+                    setShowPayment(false);
+                  }}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

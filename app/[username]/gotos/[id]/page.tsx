@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation';
-import dbConnect from '@/utils/database';
+import dbConnect from '@/lib/dbConnect';
 import GoTo from '@/models/GoTo';
 import Creator from '@/models/Creator';
 import GoToPageContent from './GoToPageContent';

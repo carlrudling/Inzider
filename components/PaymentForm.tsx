@@ -88,27 +88,25 @@ export function PaymentFormWrapper({
 
   console.log('Rendering Elements with clientSecret');
   return (
-    <div className="fixed inset-0 flex items-center justify-center p-4">
-      <div className="bg-white p-6 rounded-lg shadow-xl max-w-md w-full">
-        <h3 className="text-lg font-semibold mb-4">Complete Your Purchase</h3>
-        <Elements
-          stripe={stripePromise}
-          options={{
-            clientSecret,
-            appearance: {
-              theme: 'stripe',
-            },
-            locale: 'en',
-          }}
-        >
-          <PaymentForm
-            onSuccess={onSuccess}
-            onError={onError}
-            contentId={contentId}
-            contentType={contentType}
-          />
-        </Elements>
-      </div>
+    <div className="w-full">
+      <h3 className="text-lg font-semibold mb-4">Complete Your Purchase</h3>
+      <Elements
+        stripe={stripePromise}
+        options={{
+          clientSecret,
+          appearance: {
+            theme: 'stripe',
+          },
+          locale: 'en',
+        }}
+      >
+        <PaymentForm
+          onSuccess={onSuccess}
+          onError={onError}
+          contentId={contentId}
+          contentType={contentType}
+        />
+      </Elements>
     </div>
   );
 }
@@ -159,16 +157,17 @@ function PaymentForm({
       const { error } = await stripe.confirmPayment({
         elements,
         confirmParams: {
-          return_url: `${window.location.origin}/payment/success?contentId=${contentId}&contentType=${contentType}`,
+          return_url: window.location.origin,
         },
       });
 
-      // If we get here, there was an immediate error
-      // The actual success case will redirect to return_url
       if (error) {
         console.error('Payment error:', error);
         setErrorMessage(error.message || 'An error occurred');
         onError(error.message || 'An error occurred');
+      } else {
+        // Payment successful, call onSuccess
+        onSuccess();
       }
     } catch (error) {
       console.error('Unexpected error:', error);

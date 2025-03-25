@@ -90,7 +90,7 @@ const AboutTripPage: React.FC<AboutTripPageProps> = ({
               <h3 className="sm:text-lg text-base font-semibold font-satoshi text-[#1C1C1C] mb-2 text-left">
                 {title}
               </h3>
-              <div className="bg-custom-white-blue text-custom-blue py-1 px-3 text-sm font-semibold font-satoshi rounded-full">
+              <div className="bg-custom-white-blue text-[#1C1C1C] py-1 px-3 text-sm font-semibold font-satoshi rounded-full">
                 {/* Show currency symbol */}
                 {currencySymbols[currency] || currency}
                 {price}

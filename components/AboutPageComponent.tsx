@@ -10,6 +10,7 @@ import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import PaymentFormWrapper from './PaymentForm';
 import ReviewForm from './ReviewForm';
+import AccessModal from './AccessModal';
 
 interface Slide {
   type: 'image' | 'video';
@@ -75,6 +76,7 @@ const AboutPageComponent: React.FC<AboutPageComponentProps> = ({
   const { data: session } = useSession();
   const router = useRouter();
   const [showPayment, setShowPayment] = useState(false);
+  const [showAccessModal, setShowAccessModal] = useState(false);
   const [error, setError] = useState('');
 
   const handleGetItClick = async () => {
@@ -85,23 +87,57 @@ const AboutPageComponent: React.FC<AboutPageComponentProps> = ({
       return;
     }
 
-    console.log('Setting showPayment to true');
-    setShowPayment(true);
+    console.log('Setting showAccessModal to true');
+    setShowAccessModal(true);
     if (onGetItClick) {
       console.log('Calling onGetItClick');
       onGetItClick();
     }
   };
 
-  const handlePaymentSuccess = () => {
+  const handlePaymentSuccess = async () => {
     console.log('Payment successful');
-    router.push(`/payment/success?contentId=${id}&contentType=${contentType}`);
+    try {
+      // Create and send access key
+      const response = await fetch('/api/access/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          packageId: id,
+          packageType: contentType,
+          email: session?.user?.email,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to create access key');
+      }
+
+      // Close the payment form
+      setShowPayment(false);
+
+      // Show success message and redirect to content
+      router.push(`/${username}/${contentType}s/${id}?view=content`);
+    } catch (error) {
+      console.error('Error creating access key:', error);
+      setError(
+        'Payment successful but there was an error creating your access key. Please contact support.'
+      );
+    }
   };
 
   const handlePaymentError = (errorMessage: string) => {
     console.error('Payment error:', errorMessage);
     setError(errorMessage);
     setShowPayment(false);
+  };
+
+  const handleStartPurchase = () => {
+    console.log('Starting purchase flow in AboutPageComponent');
+    // Close the access modal
+    setShowAccessModal(false);
   };
 
   const handleReviewSubmit = async (review: {
@@ -179,7 +215,7 @@ const AboutPageComponent: React.FC<AboutPageComponentProps> = ({
               <h3 className="sm:text-lg text-base font-semibold font-satoshi text-[#1C1C1C] mb-2 text-left">
                 {title}
               </h3>
-              <div className="bg-custom-white-blue text-custom-blue py-1 px-3 text-sm font-semibold font-satoshi rounded-full">
+              <div className="bg-custom-white-blue text-[#1C1C1C] py-1 px-3 text-sm font-semibold font-satoshi rounded-full">
                 {/* Show currency symbol */}
                 {currencySymbols[currency] || currency}
                 {price}
@@ -260,23 +296,16 @@ const AboutPageComponent: React.FC<AboutPageComponentProps> = ({
               </div>
             )}
 
-            {/* Payment Form */}
-            {showPayment && (
-              <div className="fixed inset-0 z-50">
-                <div
-                  className="absolute inset-0 bg-black bg-opacity-50"
-                  onClick={() => setShowPayment(false)}
-                />
-                <div className="relative z-10">
-                  <PaymentFormWrapper
-                    contentId={id}
-                    contentType={contentType}
-                    onSuccess={handlePaymentSuccess}
-                    onError={handlePaymentError}
-                  />
-                </div>
-              </div>
-            )}
+            {/* Access Modal */}
+            <AccessModal
+              isOpen={showAccessModal}
+              onClose={() => setShowAccessModal(false)}
+              packageId={id}
+              packageType={contentType === 'trip' ? 'Trip' : 'GoTo'}
+              price={parseFloat(price)}
+              currency={currency}
+              onStartPurchase={handleStartPurchase}
+            />
 
             {/* Error Message */}
             {error && (

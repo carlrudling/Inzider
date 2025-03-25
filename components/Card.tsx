@@ -94,7 +94,29 @@ const Card: React.FC<CardProps> = (props) => {
   };
 
   const handleClick = () => {
-    router.push(navigateTo);
+    // If we're in the creator's public view, use the public route
+    if (pathname.startsWith('/dashboard')) {
+      router.push(navigateTo);
+    } else if (pathname.startsWith('/user')) {
+      // For the user dashboard, use the navigateTo path directly
+      // as it already contains the full path with username
+      router.push(navigateTo);
+    } else {
+      // Extract username from current path
+      const username = pathname.split('/')[1];
+      const parts = navigateTo.split('/');
+      const id = parts[parts.length - 1]; // Get the ID
+
+      // Determine the content type and ensure plural form
+      let contentType = parts[parts.length - 2]; // Get 'trip' or 'goto'
+      if (contentType === 'trip' || contentType === 'edit-trip') {
+        contentType = 'trips';
+      } else if (contentType === 'goto' || contentType === 'edit-goto') {
+        contentType = 'gotos';
+      }
+
+      router.push(`/${username}/${contentType}/${id}`);
+    }
   };
 
   const getProxiedUrl = (url: string) => {
@@ -106,8 +128,8 @@ const Card: React.FC<CardProps> = (props) => {
 
   return (
     <div
-      className="w-80 bg-white rounded-lg overflow-hidden shadow-lg cursor-pointer transform transition duration-300 hover:scale-105"
       onClick={handleClick}
+      className="w-[300px] min-w-[300px] bg-white rounded-lg shadow-lg overflow-hidden cursor-pointer hover:shadow-xl transition-shadow"
     >
       {/* Image/Video container with fixed height and full width */}
       <div className="relative h-[200px] w-full">
@@ -164,7 +186,7 @@ const Card: React.FC<CardProps> = (props) => {
             </div>
           )}
         </div>
-        <p className="text-gray-600 text-sm mb-1 line-clamp-2">{description}</p>
+        <p className="text-gray-600 text-sm mb-1 line-clamp-4">{description}</p>
         <div className="mt-auto flex justify-end items-center"></div>
       </div>
     </div>

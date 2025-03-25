@@ -154,7 +154,7 @@ const UserAgreement = () => {
             </h2>
             <p className="text-gray-600">
               For questions about these terms, please contact us at
-              support.inzider@gmail.com
+              help.inzider@gmail.com
             </p>
           </section>
 

@@ -1,5 +1,5 @@
 import { notFound } from 'next/navigation';
-import dbConnect from '@/utils/database';
+import dbConnect from '@/lib/dbConnect';
 import Trip from '@/models/Trip';
 import Creator from '@/models/Creator';
 import TripPageContent from './TripPageContent';

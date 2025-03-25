@@ -348,13 +348,15 @@ const SettingsContent = () => {
       });
 
       if (!res.ok) {
-        console.error('Failed to update creator profile');
+        const error = await res.json();
+        alert(error.message || 'Failed to update creator profile');
         return;
       }
 
       alert('Profile saved successfully!');
     } catch (error) {
       console.error('Error updating profile:', error);
+      alert('Failed to update profile');
     }
   };
 
@@ -632,10 +634,10 @@ const SettingsContent = () => {
               If you run into any issues, have feature suggestions or other
               questions please{' '}
               <a
-                href="mailto:support.inzider@gmail.com"
+                href="mailto:help.inzider@gmail.com"
                 className="text-purple-600 hover:text-purple-700 underline"
               >
-                send an email to support.inzider@gmail.com
+                send an email to help.inzider@gmail.com
               </a>{' '}
               and we will respond as quickly as possible. Please keep in mind
               that this is a beta version and may include some bugs.

@@ -247,7 +247,7 @@ const HomePage = () => {
             className="overflow-x-scroll pb-10 pl-10 pr-10"
             ref={scrollContainerRef1}
           >
-            <div className="flex space-x-4 whitespace-nowrap">
+            <div className="flex space-x-4">
               {goTos.map((goto, index) => {
                 const firstSlide =
                   goto.slides && goto.slides.length > 0 ? goto.slides[0] : null;
@@ -305,7 +305,7 @@ const HomePage = () => {
             className="overflow-x-scroll pb-10 pl-10 pr-10"
             ref={scrollContainerRef2}
           >
-            <div className="flex space-x-4 whitespace-nowrap">
+            <div className="flex space-x-4">
               {trips.map((trip, index) => {
                 const firstSlide =
                   trip.slides && trip.slides.length > 0 ? trip.slides[0] : null;

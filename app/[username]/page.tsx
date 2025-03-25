@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation';
 import CreatorLandingPage from '@/components/CreatorLandingPage';
-import dbConnect from '@/utils/database';
+import dbConnect from '@/lib/dbConnect';
 import Creator from '@/models/Creator';
 import GoTo from '@/models/GoTo';
 import Trip from '@/models/Trip';

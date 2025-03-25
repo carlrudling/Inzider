@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { Types } from 'mongoose';
 import Creator from '@/models/Creator';
-import dbConnect from '@/utils/database';
+import dbConnect from '@/lib/dbConnect';
 
 export async function GET(
   request: Request,
@@ -53,11 +53,12 @@ export async function PUT(
       {
         $set: {
           name: data.name,
+          username: data.username,
           description: data.description,
-          instagram: data.instagramLink,
+          instagram: data.instagram,
           xLink: data.xLink,
-          tiktok: data.tiktokLink,
-          youtube: data.youtubeLink,
+          tiktok: data.tiktok,
+          youtube: data.youtube,
           buttonColor: data.buttonColor,
           buttonTextColor: data.buttonTextColor,
           textColor: data.textColor,

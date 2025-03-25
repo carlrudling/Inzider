@@ -4,6 +4,8 @@ import { useSession } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import AboutPageComponent from '@/components/AboutPageComponent';
 import GoToPageComponent from '@/components/GoToPage';
+import AccessModal from '@/components/AccessModal';
+import PaymentForm from '@/components/PaymentForm';
 
 interface GoToPageContentProps {
   initialData: any;
@@ -22,6 +24,8 @@ export default function GoToPageContent({
   const { data: session, status: sessionStatus } = useSession();
   const [hasPurchased, setHasPurchased] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [showAccessModal, setShowAccessModal] = useState(false);
+  const [showPayment, setShowPayment] = useState(false);
 
   useEffect(() => {
     const checkPurchase = async () => {
@@ -52,6 +56,17 @@ export default function GoToPageContent({
   const handlePaymentSuccess = () => {
     console.log('Payment successful, showing details');
     router.push(`/${username}/gotos/${id}?view=content`);
+  };
+
+  const handleStartPurchase = () => {
+    console.log('Starting purchase flow in GoToPageContent');
+    // First close the access modal
+    setShowAccessModal(false);
+    // Then show the payment form after a short delay
+    setTimeout(() => {
+      setShowPayment(true);
+      console.log('Payment form shown in GoToPageContent');
+    }, 100);
   };
 
   if (loading) {
@@ -130,8 +145,7 @@ export default function GoToPageContent({
             console.log('Already purchased, showing details');
             router.push(`/${username}/gotos/${id}?view=content`);
           } else {
-            console.log('Not purchased, waiting for payment');
-            // Don't set showDetails here, wait for successful payment
+            setShowAccessModal(true);
           }
         }}
         hasPurchased={hasPurchased}
@@ -139,6 +153,57 @@ export default function GoToPageContent({
         isLoading={loading}
         reviews={initialData.reviews || []}
       />
+
+      <AccessModal
+        isOpen={showAccessModal}
+        onClose={() => setShowAccessModal(false)}
+        packageId={id}
+        packageType="GoTo"
+        price={initialData.price}
+        currency={initialData.currency}
+        onStartPurchase={handleStartPurchase}
+      />
+
+      {/* Payment Form */}
+      {showPayment && (
+        <div
+          className="fixed inset-0 z-[100]"
+          onClick={() => setShowPayment(false)}
+        >
+          <div className="absolute inset-0 bg-black bg-opacity-50" />
+          <div className="relative z-[101] flex items-center justify-center min-h-screen p-4">
+            <div
+              className="bg-white rounded-lg shadow-xl max-w-md w-full p-6"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex justify-end mb-4">
+                <button
+                  onClick={() => setShowPayment(false)}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  ✕
+                </button>
+              </div>
+              <div className="relative">
+                <PaymentForm
+                  key={`payment-form-${id}`}
+                  contentId={id}
+                  contentType="goto"
+                  onSuccess={() => {
+                    setShowPayment(false);
+                    setHasPurchased(true);
+                    router.push(`/${username}/gotos/${id}?view=content`);
+                  }}
+                  onError={(error) => {
+                    console.error('Payment error:', error);
+                    setShowPayment(false);
+                  }}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

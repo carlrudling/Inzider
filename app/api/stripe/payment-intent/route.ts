@@ -1,14 +1,14 @@
 import { NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
-import dbConnect from '@/utils/database';
+import dbConnect from '@/lib/dbConnect';
 import Creator from '@/models/Creator';
 import Trip from '@/models/Trip';
 import GoTo from '@/models/GoTo';
 import Stripe from 'stripe';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2025-01-27.acacia',
+  apiVersion: '2025-02-24.acacia',
 });
 
 export async function POST(req: Request) {
@@ -36,13 +36,6 @@ export async function POST(req: Request) {
 
     if (!content) {
       return new NextResponse('Content not found', { status: 404 });
-    }
-
-    // Check if user is trying to buy their own content
-    if (content.creatorId.toString() === session.user.id) {
-      return new NextResponse('Cannot purchase your own content', {
-        status: 400,
-      });
     }
 
     // Get creator's Stripe account ID

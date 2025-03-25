@@ -1,7 +1,7 @@
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 import { NextResponse } from 'next/server';
-import dbConnect from '@/utils/database';
+import dbConnect from '@/lib/dbConnect';
 import Purchase, { IPurchase } from '@/models/Purchase';
 import Trip, { ITrip } from '@/models/Trip';
 import GoTo, { IGoTo } from '@/models/GoTo';

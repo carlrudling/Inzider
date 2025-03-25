@@ -1,9 +1,9 @@
-import mongoose from 'mongoose';
+import mongoose, { Connection } from 'mongoose';
 
 declare global {
   var mongoose: {
-    conn: typeof mongoose | null;
-    promise: Promise<typeof mongoose> | null;
+    conn: Connection | null;
+    promise: Promise<Connection> | null;
   };
 }
 
@@ -26,8 +26,9 @@ if (!global.mongoose) {
   global.mongoose = cached;
 }
 
-async function dbConnect(retries = 3) {
+async function dbConnect(retries = 3): Promise<Connection> {
   if (cached.conn) {
+    console.log('Using existing MongoDB connection');
     return cached.conn;
   }
 
@@ -36,15 +37,20 @@ async function dbConnect(retries = 3) {
       bufferCommands: false,
       serverSelectionTimeoutMS: 5000, // Timeout after 5 seconds
       connectTimeoutMS: 10000, // Connection timeout after 10 seconds
+      dbName: 'Inzider', // From utils/database.ts
     };
 
+    mongoose.set('strictQuery', true); // From utils/database.ts
+
     cached.promise = mongoose.connect(MONGODB_URI!, opts).then((mongoose) => {
-      return mongoose;
+      console.log('MongoDB connected');
+      return mongoose.connection;
     });
   }
 
   try {
     cached.conn = await cached.promise;
+    console.log('MongoDB connection cached');
   } catch (e) {
     if (retries > 0) {
       console.log(
@@ -53,6 +59,7 @@ async function dbConnect(retries = 3) {
       cached.promise = null;
       return dbConnect(retries - 1);
     }
+    cached.promise = null;
     throw e;
   }
 

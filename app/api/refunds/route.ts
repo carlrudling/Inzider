@@ -8,7 +8,7 @@ import { NextResponse } from 'next/server';
 import { headers } from 'next/headers';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '../auth/[...nextauth]/route';
-import dbConnect from '@/utils/database';
+import dbConnect from '@/lib/dbConnect';
 import Purchase from '@/models/Purchase';
 import User from '@/models/User';
 import GoTo from '@/models/GoTo';
